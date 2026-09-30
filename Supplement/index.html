@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تست مکمل | آکادمی علی چی</title>
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700;800;900&display=swap");
+  :root {
+    --navy:#06101e; --navy-light:#0d1e38; --navy-card:#0a1830;
+    --cyan:#00c8e0; --cyan-dim:rgba(0,200,224,0.18);
+    --text:#f0f8ff; --text-dim:rgba(240,248,255,0.55);
+    --red:#ff4d6d; --green:#00e06a; --yellow:#ffc947;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:'Vazirmatn',sans-serif;font-weight:700;
+    background:var(--navy);color:var(--text);
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    position:relative;overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;top:-25%;left:50%;transform:translateX(-50%);
+    width:800px;height:800px;
+    background:radial-gradient(circle,rgba(0,200,224,0.07) 0%,transparent 70%);
+    pointer-events:none;animation:pulse-bg 5s ease-in-out infinite;
+  }
+  @keyframes pulse-bg{0%,100%{opacity:.5;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.1)}}
+  .grid-bg{
+    position:fixed;inset:0;
+    background-image:linear-gradient(rgba(0,200,224,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,224,0.025) 1px,transparent 1px);
+    background-size:60px 60px;pointer-events:none;
+  }
+  .container{
+    position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;
+    padding:32px 20px 52px;width:100%;max-width:440px;
+  }
+  .logo-wrap{margin-bottom:20px;display:flex;flex-direction:column;align-items:center;animation:logo-in .8s cubic-bezier(.34,1.56,.64,1) forwards;opacity:0}
+  @keyframes logo-in{from{opacity:0;transform:scale(.7) translateY(-16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+  .logo-circle{width:72px;height:72px;border-radius:18px;background:transparent;display:flex;align-items:center;justify-content:center;font-size:32px;filter:drop-shadow(0 0 18px rgba(0,200,224,0.45));overflow:hidden}
+  .brand-name{margin-top:10px;font-size:14px;font-weight:900;color:var(--text-dim);animation:fade-in 1s ease .3s forwards;opacity:0}
+  @keyframes fade-in{to{opacity:1}}
+  .progress-wrap{width:100%;margin-bottom:22px;animation:fade-in .5s ease .4s forwards;opacity:0}
+  .progress-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:14px;color:var(--text-dim)}
+  .progress-info strong{color:var(--cyan);font-weight:900;font-size:15px}
+  .progress-bar-bg{height:5px;background:rgba(0,200,224,0.1);border-radius:3px}
+  .progress-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--cyan),#0099bb);transition:width .45s cubic-bezier(.4,0,.2,1);box-shadow:0 0 10px rgba(0,200,224,0.5)}
+  #screen-quiz{width:100%}
+  .question-card{background:var(--navy-card);border:1.5px solid var(--cyan-dim);border-radius:20px;padding:26px 22px 20px;margin-bottom:14px}
+  .question-num{font-size:13px;font-weight:900;color:var(--cyan);letter-spacing:1.5px;margin-bottom:12px}
+  .question-text{font-size:19px;font-weight:900;line-height:1.8;color:var(--text)}
+  .question-sub{font-size:14px;font-weight:700;color:var(--text-dim);margin-top:6px;line-height:1.7}
+  .options-list{display:flex;flex-direction:column;gap:11px;margin-top:22px}
+  .option-btn{
+    width:100%;padding:16px 18px;background:var(--navy-light);
+    border:1.5px solid rgba(0,200,224,0.15);border-radius:13px;
+    font-family:'Vazirmatn',sans-serif;font-size:16px;font-weight:700;
+    color:var(--text);cursor:pointer;text-align:right;
+    transition:all .18s ease;direction:rtl;line-height:1.5;
+  }
+  .option-btn:hover{border-color:rgba(0,200,224,0.45);background:rgba(0,200,224,0.06);transform:translateX(-2px)}
+  .option-btn.selected{border-color:var(--cyan);background:rgba(0,200,224,0.1);box-shadow:0 0 0 1.5px rgba(0,200,224,0.25);color:#fff}
+  /* multi-select style */
+  .option-btn.multi.selected{border-color:#00e06a;background:rgba(0,224,106,0.1);box-shadow:0 0 0 1.5px rgba(0,224,106,0.25)}
+  .nav-row{display:flex;gap:10px;margin-top:4px}
+  .btn-next{
+    flex:1;padding:17px;background:linear-gradient(135deg,var(--cyan),#0099bb);
+    border:none;border-radius:13px;font-family:'Vazirmatn',sans-serif;
+    font-size:18px;font-weight:900;color:var(--navy);cursor:pointer;
+    box-shadow:0 4px 22px rgba(0,200,224,0.28);transition:all .2s;
+    opacity:.35;pointer-events:none;
+  }
+  .btn-next.active{opacity:1;pointer-events:auto}
+  .btn-next.active:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,200,224,0.42)}
+  .btn-back{
+    padding:17px 20px;background:var(--navy-light);border:1.5px solid rgba(0,200,224,0.15);
+    border-radius:13px;font-family:'Vazirmatn',sans-serif;font-size:16px;font-weight:900;
+    color:var(--text-dim);cursor:pointer;transition:all .2s;
+  }
+  .btn-back:hover{border-color:rgba(0,200,224,0.4);color:var(--text)}
+  #screen-loading,#screen-analyzing{display:none;flex-direction:column;align-items:center;gap:18px}
+  .loader-ring{
+    width:56px;height:56px;border:2.5px solid rgba(0,200,224,0.1);
+    border-top:2.5px solid var(--cyan);border-radius:50%;
+    animation:spin .85s linear infinite;filter:drop-shadow(0 0 10px rgba(0,200,224,0.55));
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{font-size:18px;font-weight:800;color:var(--text-dim);text-align:center;line-height:1.7}
+  .loading-sub{font-size:14px;font-weight:700;color:var(--text-dim);text-align:center;line-height:1.7;animation:pulse-txt 2s ease-in-out infinite}
+  @keyframes pulse-txt{0%,100%{opacity:.5}50%{opacity:1}}
+  .analyze-steps{width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px}
+  .step-row{
+    display:flex;align-items:center;gap:12px;padding:13px 16px;
+    background:var(--navy-card);border:1px solid var(--cyan-dim);border-radius:12px;
+    font-size:15px;font-weight:700;color:var(--text-dim);
+    opacity:0;transition:opacity .4s,color .4s;
+  }
+  .step-row.active{opacity:1;color:var(--text)}
+  .step-dot{width:10px;height:10px;border-radius:50%;background:rgba(0,200,224,0.2);flex-shrink:0;transition:background .4s}
+  .step-row.active .step-dot{background:var(--cyan);box-shadow:0 0 8px rgba(0,200,224,0.6)}
+  .step-row.done{opacity:1;color:var(--green)}
+  .step-row.done .step-dot{background:var(--green)}
+  
+  /* Form Screen */
+  #screen-form{display:none;flex-direction:column;align-items:center;gap:16px;width:100%}
+  .form-badge{font-size:48px;animation:bounce-in .5s cubic-bezier(.34,1.56,.64,1) forwards}
+  @keyframes bounce-in{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+  .form-card{width:100%;background:var(--navy-card);border:1.5px solid var(--cyan-dim);border-radius:20px;padding:24px 20px;text-align:center}
+  .form-card-title{font-size:21px;font-weight:900;color:var(--text);line-height:1.75;margin-bottom:10px}
+  .form-card-title span{color:var(--cyan)}
+  .form-card-sub{font-size:15px;color:var(--text-dim);line-height:1.8}
+  .divider{width:40px;height:2.5px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);margin:0 auto}
+  .input-wrap{width:100%}
+  .input-wrap input,.input-wrap select{
+    width:100%;padding:16px 17px;background:var(--navy-light);
+    border:1.5px solid rgba(0,200,224,0.18);border-radius:14px;
+    font-family:'Vazirmatn',sans-serif;font-size:16px;font-weight:700;
+    color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;direction:rtl;
+  }
+  .input-wrap select{appearance:none;cursor:pointer;color-scheme:dark}
+  .input-wrap input::placeholder{color:var(--text-dim);font-weight:700}
+  .input-wrap input:focus,.input-wrap select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,200,224,0.12)}
+  .input-wrap input.error,.input-wrap select.error{border-color:var(--red);box-shadow:0 0 0 3px rgba(255,77,109,0.1)}
+  .phone-row{display:grid;grid-template-columns:1fr 1.3fr;gap:10px;direction:ltr}
+  .phone-row select,.phone-row input{direction:ltr;text-align:left}
+  .field-hint{color:var(--text-dim);font-size:13px;font-weight:700;margin-top:7px;text-align:right}
+  .error-msg{color:var(--red);font-size:13px;font-weight:700;margin-top:7px;display:none;text-align:right}
+  .btn-primary{
+    width:100%;padding:18px 24px;border:none;border-radius:14px;
+    font-family:'Vazirmatn',sans-serif;font-size:18px;font-weight:900;cursor:pointer;
+    background:linear-gradient(135deg,var(--cyan),#0099bb);color:var(--navy);
+    box-shadow:0 4px 24px rgba(0,200,224,0.3);transition:all .2s;
+  }
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,200,224,0.45)}
+  
+  /* Result */
+  #screen-result{display:none;flex-direction:column;align-items:center;gap:0;width:100%}
+  .result-header{text-align:center;margin-bottom:20px;width:100%}
+  .result-title{font-size:22px;font-weight:900;color:var(--text);margin-bottom:8px}
+  .result-title span{color:var(--cyan)}
+  .result-sub{font-size:15px;color:var(--text-dim);line-height:1.8;margin-bottom:20px}
+  /* supplement sections */
+  .section-label{
+    width:100%;font-size:13px;font-weight:900;letter-spacing:1.5px;
+    color:var(--cyan);margin:18px 0 10px;
+  }
+  .supplement-card{
+    width:100%;background:var(--navy-card);border:1.5px solid var(--cyan-dim);
+    border-radius:16px;padding:18px;margin-bottom:10px;
+  }
+  .supplement-card.essential{border-color:rgba(255,201,71,0.4)}
+  .supplement-card.sport{border-color:rgba(0,200,224,0.3)}
+  .supp-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .supp-icon{font-size:20px;flex-shrink:0}
+  .supp-name{font-size:17px;font-weight:900;color:var(--text)}
+  .supp-badge{
+    margin-right:auto;padding:3px 10px;border-radius:20px;
+    font-size:12px;font-weight:900;
+  }
+  .supp-badge.essential{background:rgba(255,201,71,0.15);color:var(--yellow);border:1px solid rgba(255,201,71,0.3)}
+  .supp-badge.sport{background:rgba(0,200,224,0.1);color:var(--cyan);border:1px solid rgba(0,200,224,0.25)}
+  .supp-body{font-size:14px;font-weight:700;color:var(--text-dim);line-height:1.8}
+  .no-extra{
+    width:100%;background:var(--navy-card);border:1.5px solid rgba(0,224,106,0.25);
+    border-radius:16px;padding:18px;text-align:center;
+    font-size:15px;font-weight:700;color:var(--green);
+  }
+  .cta-bottom-card{
+    width:100%;background:linear-gradient(135deg,rgba(0,200,224,0.08),rgba(0,153,187,0.08));
+    border:1.5px solid rgba(0,200,224,0.3);border-radius:20px;
+    padding:24px 20px;text-align:center;margin:18px 0 14px;
+  }
+  .cta-bottom-title{font-size:20px;font-weight:900;color:var(--text);line-height:1.75;margin-bottom:8px}
+  .cta-bottom-title span{color:var(--cyan)}
+  .cta-bottom-sub{font-size:15px;color:var(--text-dim);line-height:1.8}
+  #screen-fallback{display:none;flex-direction:column;align-items:center;gap:16px;width:100%}
+  .fallback-title{font-size:22px;font-weight:900;text-align:center}
+  .fallback-sub{font-size:15px;color:var(--text-dim);text-align:center;line-height:1.75}
+  .btn-group{display:flex;flex-direction:column;gap:12px;width:100%}
+  .btn-abroad{background:var(--navy-light)!important;color:var(--text)!important;border:1.5px solid rgba(0,200,224,0.2)!important;box-shadow:none!important}
+  .btn-abroad:hover{border-color:rgba(0,200,224,0.5)!important}
+  #screen-redirect{display:none;flex-direction:column;align-items:center;gap:16px}
+  .redirect-icon{width:80px;height:80px;border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:36px;animation:bounce-in .5s cubic-bezier(.34,1.56,.64,1) forwards}
+  .redirect-icon.telegram{background:linear-gradient(135deg,#2AABEE,#229ED9);box-shadow:0 8px 28px rgba(42,171,238,0.45)}
+  .redirect-text{font-size:19px;font-weight:900;text-align:center}
+  .redirect-sub{font-size:14px;color:var(--text-dim);text-align:center}
+  /* info card for basic info */
+  .info-row{display:flex;gap:10px;width:100%;margin-bottom:0}
+  .info-input{flex:1;padding:14px 15px;background:var(--navy-light);border:1.5px solid rgba(0,200,224,0.18);border-radius:14px;font-family:'Vazirmatn',sans-serif;font-size:15px;font-weight:700;color:var(--text);outline:none;transition:border-color .2s;direction:rtl}
+  .info-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,200,224,0.12)}
+  .info-input.error{border-color:var(--red)}
+  .info-select{padding:14px 12px;background:var(--navy-light);border:1.5px solid rgba(0,200,224,0.18);border-radius:14px;font-family:'Vazirmatn',sans-serif;font-size:15px;font-weight:700;color:var(--text);outline:none;cursor:pointer;color-scheme:dark;appearance:none;direction:rtl;transition:border-color .2s}
+  .info-select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,200,224,0.12)}
+  @media(max-width:480px){.phone-row{grid-template-columns:1fr}.question-text{font-size:17px}}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="container">
+
+  <div class="logo-wrap">
+    <div class="logo-circle"><img src="https://media.alichiacademy.ir/file_00000000b8d471fd99286105ccafe95a.png" style="width:100%;height:100%;object-fit:contain;border-radius:18px;" /></div>
+    <div class="brand-name">آکادمی علی چی</div>
+  </div>
+
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-info">
+      <span>سوال <strong id="q-num">1</strong> از <strong>7</strong></span>
+      <span id="q-pct">20%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-fill" style="width:20%"></div>
+    </div>
+  </div>
+
+  <div id="screen-quiz">
+    <div class="question-card">
+      <div class="question-num" id="q-label">سوال ۱</div>
+      <div class="question-text" id="q-text"></div>
+      <div class="question-sub" id="q-sub"></div>
+      <div class="options-list" id="q-options"></div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" id="btn-back" onclick="prevQ()" style="display:none">← قبلی</button>
+      <button class="btn-next" id="btn-next" onclick="nextQ()">بعدی ←</button>
+    </div>
+  </div>
+
+  <div id="screen-analyzing">
+    <div class="loader-ring"></div>
+    <div class="loading-text">در حال تحلیل نیازهات...</div>
+    <div class="loading-sub" id="analyze-sub">لطفاً صبر کن</div>
+    <div class="analyze-steps">
+      <div class="step-row" id="step-1"><div class="step-dot"></div><span>بررسی هدف تمرینی</span></div>
+      <div class="step-row" id="step-2"><div class="step-dot"></div><span>تحلیل رژیم غذایی</span></div>
+      <div class="step-row" id="step-3"><div class="step-dot"></div><span>بررسی سطح پروتئین</span></div>
+      <div class="step-row" id="step-4"><div class="step-dot"></div><span>ارزیابی مشکلات خاص</span></div>
+      <div class="step-row" id="step-5"><div class="step-dot"></div><span>آماده‌سازی لیست مکمل‌ها</span></div>
+    </div>
+  </div>
+
+  <!-- صفحه نتایج به اینجا منتقل شد -->
+  <div id="screen-result">
+    <div class="result-header">
+      <div class="result-title">مکمل‌های <span>پیشنهادی</span> تو</div>
+      <div class="result-sub" id="result-sub"></div>
+    </div>
+    <div id="result-essential-wrap"></div>
+    <div id="result-sport-wrap"></div>
+    <div class="cta-bottom-card">
+      <div class="cta-bottom-title">میخوای <span>برنامه‌ریزیت</span> رو انجام بدم؟</div>
+      <div class="cta-bottom-sub">اگه می‌خوای یه برنامه دقیق و علمی داشته باشی، برای هماهنگی بهم پیام بده.</div>
+    </div>
+    <button class="btn-primary" onclick="sendMessage()" style="width:100%">📲 بهم پیام بده ←</button>
+  </div>
+
+  <!-- فرم دریافت اطلاعات به انتهای کار منتقل شد -->
+  <div id="screen-form">
+    <div class="form-badge">💬</div>
+    <div class="form-card">
+      <div class="form-card-title">مشاهده <span>نتیجه تست</span></div>
+      <div class="divider" style="margin-bottom:12px;"></div>
+      <div class="form-card-sub">
+        برای مشاهده نتیجه‌ی شخصی‌سازی‌شده، اسم و شماره‌ات رو وارد کن 👇
+      </div>
+    </div>
+    <div class="input-wrap">
+      <input type="text" id="input-name" placeholder="نام و نام خانوادگی" autocomplete="off" />
+      <div class="error-msg" id="err-name">نام رو وارد کن</div>
+    </div>
+    <div class="input-wrap">
+      <div class="field-hint" style="text-align:right;margin-bottom:10px;padding:10px 12px;border:1px solid #fbbf24;border-radius:10px;background:rgba(251,191,36,.12);color:#fbbf24;font-size:13px;font-weight:800;">🌍 خارج از ایران هستی؟ پیش‌شماره‌ی خودت رو وارد کن.</div>
+      <div class="phone-row">
+        <select id="input-country">
+          <option value="IR" selected>🇮🇷 ایران +98</option>
+          <option value="AF">🇦🇫 افغانستان +93</option>
+          <option value="TR">🇹🇷 ترکیه +90</option>
+          <option value="AE">🇦🇪 امارات +971</option>
+          <option value="IQ">🇮🇶 عراق +964</option>
+          <option value="US">🇺🇸 آمریکا +1</option>
+          <option value="CA">🇨🇦 کانادا +1</option>
+          <option value="GB">🇬🇧 انگلستان +44</option>
+          <option value="DE">🇩🇪 آلمان +49</option>
+          <option value="FR">🇫🇷 فرانسه +33</option>
+          <option value="NL">🇳🇱 هلند +31</option>
+          <option value="SE">🇸🇪 سوئد +46</option>
+          <option value="AU">🇦🇺 استرالیا +61</option>
+          <option value="OTHER">🌍 کشور دیگر</option>
+        </select>
+        <input type="tel" id="input-phone" placeholder="9123456789" autocomplete="tel" inputmode="tel" dir="ltr" />
+      </div>
+      <div class="error-msg" id="err-phone">شماره معتبر وارد کن</div>
+      <div class="field-hint" id="phone-hint">شماره را با ارقام فارسی یا انگلیسی و بدون صفر اول وارد کن؛ پیش‌شماره انتخاب‌شده خودکار اضافه می‌شود.</div>
+    </div>
+    <button class="btn-primary" onclick="handleSubmit()">مشاهده نتیجه 🎯</button>
+  </div>
+
+  <div id="screen-loading">
+    <div class="loader-ring"></div>
+    <div class="loading-text">در حال ثبت اطلاعات...</div>
+  </div>
+
+  <div id="screen-fallback">
+    <div class="fallback-title">کجا زندگی می‌کنی؟</div>
+    <div class="divider" style="margin:0 auto;"></div>
+    <div class="fallback-sub">انتخاب کن تا بهترین راه ارتباطی رو برات باز کنم</div>
+    <div class="btn-group">
+      <button class="btn-primary" onclick="goTo('telegram')">📍 داخل ایران</button>
+      <button class="btn-primary btn-abroad" onclick="goTo('telegram_abroad')">✈️ خارج از ایران</button>
+    </div>
+  </div>
+
+  <div id="screen-redirect">
+    <div class="redirect-icon" id="redirect-icon"></div>
+    <div class="redirect-text" id="redirect-text"></div>
+    <div class="redirect-sub" id="redirect-sub"></div>
+  </div>
+
+</div>
+<script>
+// ==========================================
+// تنظیمات اصلی فرم
+// ==========================================
+const FORM_NAME = "Supplement-test"; // نام تب شیت
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxphxAZRvzk_hZ7_lNYudvlzHdLgHc4ZIHAY0zdcHHyKabVS9vao6Oj6Gdd3wLcq9FePQ/exec"; 
+const TELEGRAM_MESSAGE = "سلام جهت برنامه ریزی شخصی پیام میدم";
+const TELEGRAM_IRAN = "https://t.me/alichifit?text=" + encodeURIComponent(TELEGRAM_MESSAGE);
+const TELEGRAM_ABROAD = "https://t.me/AMIRALICHI?text=" + encodeURIComponent(TELEGRAM_MESSAGE);
+
+// دریافت سورس ترافیک
+const urlParams = new URLSearchParams(window.location.search);
+const SOURCE_LABEL = urlParams.get('source') || urlParams.get('utm_source') || "بدون تگ / ارگانیک";
+function getIranSupport() {
+  return { url: TELEGRAM_IRAN, accountName: "alichifit" };
+}
+
+function getAbroadSupport() {
+  return { url: TELEGRAM_ABROAD, accountName: "AMIRALICHI" };
+}
+
+function getSupportLabel(supportInfo) {
+  return "@" + supportInfo.accountName;
+}
+
+const QUESTIONS = [
+  {
+    q: "جنسیتت چیه؟",
+    sub: "",
+    opts: ["مرد", "زن"],
+    multi: false,
+    type: "gender"
+  },
+  {
+    q: "سن، قد و وزنت چنده؟",
+    sub: "این اطلاعات برای محاسبه دقیق‌تر نیازهات استفاده میشه",
+    opts: [],
+    multi: false,
+    type: "basic_info"
+  },
+  {
+    q: "هدف اصلیت از ورزش چیه؟",
+    sub: "",
+    opts: ["💪 عضله‌سازی و افزایش حجم", "🔥 چربی‌سوزی و کاهش وزن"],
+    multi: false,
+    type: "goal"
+  },
+  {
+    q: "روزانه چقدر پروتئین دریافت می‌کنی؟",
+    sub: "منظور پروتئین از غذاست — گوشت، مرغ، تخم‌مرغ، لبنیات...",
+    opts: ["کمتر از ۱.۵ گرم به ازای هر کیلو وزنم", "بین ۱.۵ تا ۲.۲ گرم به ازای هر کیلو وزنم"],
+    multi: false,
+    type: "protein"
+  },
+  {
+    q: "غذاهایی که می‌خوری معمولاً چطوره؟",
+    sub: "",
+    opts: ["🍔 بیشتر فست‌فود یا غذای آماده می‌خورم", "🍳 خونگیه ولی تنوع نداره — از میوه و سبزیجات منظم استفاده نمی‌کنم", "🥗 متنوعه — میوه، سبزیجات، غلات کامل هم داره"],
+    multi: false,
+    type: "diet"
+  },
+  {
+    q: "روزانه چقدر زیر آفتاب مستقیم هستی؟",
+    sub: "حداقل ۱۵ دقیقه در روز",
+    opts: ["کم — بیشتر خونه یا دفتر هستم", "متوسط — یه کم بیرون می‌رم", "زیاد — بیشتر بیرون از خونه هستم"],
+    multi: false,
+    type: "sun"
+  },
+  {
+    q: "آیا یکی از این مشکلات رو داری؟",
+    sub: "می‌تونی چند تا انتخاب کنی",
+    opts: ["😴 خستگی زیاد یا بی‌انرژی بودن", "💤 خواب بد یا ریکاوری ضعیف", "🦴 درد مفاصل یا زانو", "هیچکدام"],
+    multi: true,
+    type: "issues"
+  }
+];
+
+const FA = [" ","۱","۲","۳","۴","۵","۶","۷"];
+let currentQ = 0;
+let answers = new Array(7).fill(null);
+let userData = {}, locationDecision = null;
+let calculatedSupplementsText = "";
+
+function renderQ() {
+  const q = QUESTIONS[currentQ];
+  const total = 7;
+  const pct = Math.round(((currentQ + 1) / total) * 100);
+  document.getElementById("q-num").textContent = currentQ + 1;
+  document.getElementById("q-pct").textContent = pct + "%";
+  document.getElementById("progress-fill").style.width = pct + "%";
+  document.getElementById("q-label").textContent = "سوال " + FA[currentQ + 1];
+  document.getElementById("q-text").textContent = q.q;
+  const subEl = document.getElementById("q-sub");
+  subEl.textContent = q.sub;
+  subEl.style.display = q.sub ? "block" : "none";
+  const list = document.getElementById("q-options");
+  list.innerHTML = "";
+  const isMulti = q.multi;
+  const curAns = answers[currentQ];
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    let selected = false;
+    if (isMulti) {
+      selected = Array.isArray(curAns) && curAns.includes(i);
+      btn.className = "option-btn multi" + (selected ? " selected" : "");
+    } else {
+      selected = curAns === i;
+      btn.className = "option-btn" + (selected ? " selected" : "");
+    }
+    btn.textContent = opt;
+    btn.onclick = () => selectOption(i);
+    list.appendChild(btn);
+  });
+  
+  if (q.type === "basic_info") {
+    list.innerHTML = "";
+    const saved = answers[currentQ] || {};
+    list.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px;">
+        <div style="display:flex;gap:10px;">
+          <div style="flex:1;">
+            <input id="info-age" type="text" data-number-input inputmode="numeric" placeholder="سن (سال)" min="12" max="80"
+              style="width:100%;padding:14px 15px;background:var(--navy-light);border:1.5px solid rgba(0,200,224,0.18);border-radius:14px;font-family:Vazirmatn,sans-serif;font-size:15px;font-weight:700;color:var(--text);outline:none;direction:rtl;transition:border-color .2s;"
+              value="${saved.age||''}" oninput="this.value=window.normalizeNumberInput?window.normalizeNumberInput(this.value,false):this.value;syncBasicInfo()" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='rgba(0,200,224,0.18)'" />
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <div style="flex:1;">
+            <input id="info-height" type="text" data-number-input inputmode="numeric" placeholder="قد (سانتی‌متر)" min="100" max="230"
+              style="width:100%;padding:14px 15px;background:var(--navy-light);border:1.5px solid rgba(0,200,224,0.18);border-radius:14px;font-family:Vazirmatn,sans-serif;font-size:15px;font-weight:700;color:var(--text);outline:none;direction:rtl;transition:border-color .2s;"
+              value="${saved.height||''}" oninput="this.value=window.normalizeNumberInput?window.normalizeNumberInput(this.value,false):this.value;syncBasicInfo()" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='rgba(0,200,224,0.18)'" />
+          </div>
+          <div style="flex:1;">
+            <input id="info-weight" type="text" data-number-input data-decimal inputmode="decimal" placeholder="وزن (کیلوگرم)" min="30" max="300"
+              style="width:100%;padding:14px 15px;background:var(--navy-light);border:1.5px solid rgba(0,200,224,0.18);border-radius:14px;font-family:Vazirmatn,sans-serif;font-size:15px;font-weight:700;color:var(--text);outline:none;direction:rtl;transition:border-color .2s;"
+              value="${saved.weight||''}" oninput="this.value=window.normalizeNumberInput?window.normalizeNumberInput(this.value,true):this.value;syncBasicInfo()" onfocus="this.style.borderColor='var(--cyan)'" onblur="this.style.borderColor='rgba(0,200,224,0.18)'" />
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  document.getElementById("btn-back").style.display = currentQ > 0 ? "block" : "none";
+  updateNextBtn();
+}
+
+function syncBasicInfo() {
+  const age = document.getElementById("info-age")?.value;
+  const height = document.getElementById("info-height")?.value;
+  const weight = document.getElementById("info-weight")?.value;
+  if (age && height && weight && +age>0 && +height>0 && +weight>0) {
+    answers[currentQ] = { age: +age, height: +height, weight: +weight };
+  } else {
+    answers[currentQ] = null;
+  }
+  updateNextBtn();
+}
+
+function selectOption(idx) {
+  const q = QUESTIONS[currentQ];
+  if (q.multi) {
+    let cur = Array.isArray(answers[currentQ]) ? [...answers[currentQ]] : [];
+    if (idx === 3) {
+      cur = [3];
+    } else {
+      cur = cur.filter(x => x !== 3);
+      if (cur.includes(idx)) {
+        cur = cur.filter(x => x !== idx);
+      } else {
+        cur.push(idx);
+      }
+    }
+    if (cur.length === 0) cur = null;
+    answers[currentQ] = cur;
+    document.querySelectorAll(".option-btn.multi").forEach((b, i) => {
+      b.classList.toggle("selected", Array.isArray(cur) && cur.includes(i));
+    });
+  } else {
+    answers[currentQ] = idx;
+    document.querySelectorAll(".option-btn").forEach((b, i) => b.classList.toggle("selected", i === idx));
+  }
+  updateNextBtn();
+}
+
+function updateNextBtn() {
+  const btn = document.getElementById("btn-next");
+  const ans = answers[currentQ];
+  const isLast = currentQ === 6;
+  const done = isLast || (ans !== null && (Array.isArray(ans) ? ans.length > 0 : true));
+  btn.classList.toggle("active", done);
+  btn.textContent = isLast ? "مشاهده نتیجه 🎯" : "بعدی ←";
+}
+
+function nextQ() {
+  const ans = answers[currentQ];
+  const done = ans !== null && (Array.isArray(ans) ? ans.length > 0 : true);
+  if (!done) return;
+  if (currentQ < 6) { currentQ++; renderQ(); }
+  else { startAnalyzing(); }
+}
+
+function prevQ() { if (currentQ > 0) { currentQ--; renderQ(); } }
+
+function startAnalyzing() {
+  document.getElementById("screen-quiz").style.display = "none";
+  document.getElementById("progress-wrap").style.display = "none";
+  document.getElementById("screen-analyzing").style.display = "flex";
+  const steps = ["step-1","step-2","step-3","step-4","step-5"];
+  const subs = ["بررسی هدف تمرینی...","تحلیل رژیم غذایی...","بررسی سطح پروتئین...","ارزیابی مشکلات خاص...","آماده‌سازی لیست مکمل‌ها..."];
+  let i = 0;
+  function tick() {
+    if (i > 0) { document.getElementById(steps[i-1]).classList.remove("active"); document.getElementById(steps[i-1]).classList.add("done"); }
+    if (i < steps.length) {
+      document.getElementById(steps[i]).classList.add("active");
+      document.getElementById("analyze-sub").textContent = subs[i];
+      i++; setTimeout(tick, 700);
+    } else {
+      setTimeout(() => {
+        document.getElementById("screen-analyzing").style.display = "none";
+        // در این نسخه مستقیماً به صفحه نتایج منتقل می‌شود
+        const { essential, sport } = computeSupplements();
+        showResultScreen(essential, sport);
+        sendMessage();
+      }, 500);
+    }
+  }
+  setTimeout(tick, 400);
+}
+
+// ======= منطق مکمل‌ها =======
+function computeSupplements() {
+  const gender = answers[0];
+  const goal   = answers[2];
+  const prot   = answers[3];
+  const diet   = answers[4];
+  const sun    = answers[5];
+  const issues = Array.isArray(answers[6]) ? answers[6] : [];
+
+  const essential = [];
+  const sport = [];
+
+  if (sun === 0 || sun === 1) {
+    essential.push({
+      icon: "☀️",
+      name: "ویتامین D3",
+      desc: "بیش از ۷۰٪ مردم ایران کمبود ویتامین D دارن. این ویتامین برای ساخت عضله، قدرت و سیستم ایمنی حیاتیه."
+    });
+  }
+
+  if (prot === 0) {
+    essential.push({
+      icon: "🥤",
+      name: "پودر پروتئین",
+      desc: "برای عضله‌سازی و حفظ عضله در کاهش وزن، حداقل ۱.۶ گرم به ازای هر کیلو نیازه. باتوجه به پاسخت چون این مقدارو به بدن نمی‌رسونی، پودر پروتئین ساده‌ترین راه جبرانه — یا رژیمتو کامل‌تر کن یا از پودرهای پروتئینی مثل پروتئین وی استفاده کن."
+    });
+  }
+
+  if (diet === 0 || diet === 1) {
+    essential.push({
+      icon: "💊",
+      name: "مولتی ویتامین مینرال",
+      desc: "وقتی غذات تنوع نداره، بدنت یه سری ویتامین‌ها و مواد معدنی مهم رو نمی‌تونه به اندازه کافی دریافت کنه — چیزایی مثل زینک، آهن، ویتامین‌های گروه B و خیلی چیزای دیگه که بدن برای انرژی، ریکاوری و عملکرد ورزشی بهشون نیاز داره. یه قرص مولتی ویتامین مینرال روزانه این کمبودها رو به راحتی جبران می‌کنه."
+    });
+  }
+
+  if (gender === 1) {
+    essential.push({
+      icon: "🩸",
+      name: "آهن",
+      desc: "به خاطر قاعدگی، زنان بیشتر در معرض کمبود آهن هستن. کمبود آهن باعث خستگی زودرس، کاهش استقامت و افت عملکرد ورزشی میشه."
+    });
+  }
+
+  sport.push({
+    icon: "⚡",
+    name: "کراتین",
+    desc: "کراتین بیشترین تحقیق علمی رو بین همه مکمل‌های ورزشی داره. قدرتتو بیشتر می‌کنه، بهتر عضله می‌سازی، ریکاوری بدنت رو هم بالا میاره."
+  });
+
+  sport.push({
+    icon: "🔥",
+    name: "بتا آلانین",
+    desc: "بتا آلانین استقامتت رو تو تمرین می‌بره بالا، یعنی مدت زمان طولانی‌تری می‌تونی با کیفیت بالاتر تمرین کنی."
+  });
+
+  if (issues.includes(0) || issues.includes(1)) {
+    sport.push({
+      icon: "🌙",
+      name: "منیزیم",
+      desc: "منیزیم کیفیت خواب و ریکاوری عضلاتت رو بهتر می‌کنه. اگه خستگی زیاد داری یا خوابت کامل نیست، احتمال زیاد کمبود منیزیم داری."
+    });
+  }
+
+  if (issues.includes(2) || goal === 1) {
+    let omega3Desc = "";
+    if (goal === 1 && issues.includes(2)) {
+      omega3Desc = "امگا ۳ خاصیت ضدالتهابی داره و ریکاوری بعد تمرین رو بهتر می‌کنه. تو رژیم کاهش وزن هم بدنت به اسیدهای چرب ضروری نیاز داره که خودش نمی‌تونه بسازه.";
+    } else if (goal === 1) {
+      omega3Desc = "تو رژیم کاهش وزن مصرف چربی پایین میاد، ولی بدنت به یه سری اسیدهای چرب ضروری نیاز داره که خودش نمی‌تونه بسازه. امگا ۳ این نیاز رو تامین می‌کنه.";
+    } else {
+      omega3Desc = "امگا ۳ خاصیت ضدالتهابی داره، ریکاوری بعد تمرین رو بهتر می‌کنه و به کاهش درد مفاصل کمک می‌کنه.";
+    }
+    sport.push({
+      icon: "🐟",
+      name: "امگا ۳",
+      desc: omega3Desc
+    });
+  }
+
+  return { essential, sport };
+}
+
+const PHONE_RULES = {
+  IR:{dial:"98",min:10,max:10,mobile:/^9\d{9}$/,sample:"9123456789"},
+  AF:{dial:"93",min:9,max:9,mobile:/^7\d{8}$/,sample:"701234567"},
+  TR:{dial:"90",min:10,max:10,mobile:/^5\d{9}$/,sample:"5012345678"},
+  AE:{dial:"971",min:9,max:9,mobile:/^5\d{8}$/,sample:"501234567"},
+  IQ:{dial:"964",min:10,max:10,mobile:/^7\d{9}$/,sample:"7712345678"},
+  US:{dial:"1",min:10,max:10,mobile:/^[2-9]\d{9}$/,sample:"2025550123"},
+  CA:{dial:"1",min:10,max:10,mobile:/^[2-9]\d{9}$/,sample:"4165550123"},
+  GB:{dial:"44",min:10,max:10,mobile:/^7\d{9}$/,sample:"7123456789"},
+  DE:{dial:"49",min:10,max:11,mobile:/^1[5-7]\d{8,9}$/,sample:"15123456789"},
+  FR:{dial:"33",min:9,max:9,mobile:/^[67]\d{8}$/,sample:"612345678"},
+  NL:{dial:"31",min:9,max:9,mobile:/^6\d{8}$/,sample:"612345678"},
+  SE:{dial:"46",min:9,max:9,mobile:/^7\d{8}$/,sample:"701234567"},
+  AU:{dial:"61",min:9,max:9,mobile:/^4\d{8}$/,sample:"412345678"}
+};
+
+function toEN(v){return String(v||"").replace(/[۰-۹٠-٩]/g,d=>{const pi="۰۱۲۳۴۵۶۷۸۹".indexOf(d);return pi>-1?pi:"٠١٢٣٤٥٦٧٨٩".indexOf(d);});}
+function cleanPhone(v){return toEN(v).replace(/[^\d+]/g,"").replace(/(?!^)\+/g,"");}
+function stripDial(p,r){let d=p.replace(/^\+/,"");if(d.startsWith("00"))d=d.slice(2);if(d.startsWith(r.dial))d=d.slice(r.dial.length);if(d.startsWith("0"))d=d.slice(1);return d;}
+function validatePhone(raw,cc){
+  const cl=cleanPhone(raw);
+  if(!cl)return{valid:false,message:"شماره موبایل رو وارد کن"};
+  const rule=PHONE_RULES[cc];
+  if(!rule){
+    if(!/^(?:\+|00)/.test(cl))return{valid:false,message:"برای کشور دیگر، شماره را با پیش‌شماره کامل وارد کن؛ مثل +4915123456789"};
+    const g=cl.replace(/^(?:\+|00)/,"").replace(/^0+/,"");
+    return /^\d{8,15}$/.test(g)?{valid:true,countryCode:"OTHER",national:g,e164:"+"+g,isIranPhone:g.startsWith("98")}:{valid:false,message:"شماره بین‌المللی معتبر وارد کن؛ مثل +4915123456789"};
+  }
+  const nat=stripDial(cl,rule);
+  if(nat.length<rule.min||nat.length>rule.max||!rule.mobile.test(nat))return{valid:false,message:"شماره معتبر وارد کن؛ مثلاً: "+rule.sample};
+  return{valid:true,countryCode:cc,national:nat,e164:"+"+rule.dial+nat,isIranPhone:cc==="IR"};
+}
+
+function getTimezone(){try{return Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){return null}}
+function getBrowserRegion(){for(const l of(navigator.languages||[navigator.language||""])){const m=String(l).toUpperCase().match(/-([A-Z]{2})$/);if(m)return m[1];}return null;}
+
+function decide(pi){
+
+  const tz=getTimezone(),br=getBrowserRegion();
+  const tzIran=tz==="Asia/Tehran",tzAbroad=tz&&tz!=="Asia/Tehran";
+  const brAbroad=br&&br!=="IR"&&br!=="AF",brIran=br==="IR"&&tz==="Asia/Tehran";
+  
+  if(tzAbroad) return {dest:"telegram_abroad", location:"خارج (تایم‌زون)", segment:"foreign_timezone"};
+  if(!pi.isIranPhone) return {dest:"telegram_abroad", location:"خارج (شماره)", segment:"foreign_phone"};
+  if(tzIran||brIran) return {dest:"telegram", location:"ایران", segment:"inside_iran"};
+  
+  return {dest:"fallback", location:"نامشخص", segment:"unknown"};
+}
+
+function saveToSheet(payload){
+  try {
+    payload.formName = FORM_NAME;
+    fetch(SCRIPT_URL, {
+      method:"POST",
+      mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {}
+}
+
+function showResultScreen(essential, sport){
+  document.getElementById("result-sub").textContent = "مکمل‌های پیشنهادی باتوجه به شرایط و هدفت 👇";
+  
+  const essWrap = document.getElementById("result-essential-wrap");
+  essWrap.innerHTML = "";
+  if (essential.length > 0) {
+    const label = document.createElement("div");
+    label.className = "section-label";
+    label.textContent = "🔴 مکمل‌های ضروری";
+    essWrap.appendChild(label);
+    essential.forEach(s => {
+      const card = document.createElement("div");
+      card.className = "supplement-card essential";
+      card.innerHTML = `
+        <div class="supp-header">
+          <span class="supp-icon">${s.icon}</span>
+          <span class="supp-name">${s.name}</span>
+          <span class="supp-badge essential">ضروری</span>
+        </div>
+        <div class="supp-body">${s.desc}</div>
+      `;
+      essWrap.appendChild(card);
+    });
+  }
+
+  const sportWrap = document.getElementById("result-sport-wrap");
+  sportWrap.innerHTML = "";
+  if (sport.length > 0) {
+    const label2 = document.createElement("div");
+    label2.className = "section-label";
+    label2.textContent = "🔵 مکمل‌های ورزشی";
+    sportWrap.appendChild(label2);
+    sport.forEach(s => {
+      const card = document.createElement("div");
+      card.className = "supplement-card sport";
+      card.innerHTML = `
+        <div class="supp-header">
+          <span class="supp-icon">${s.icon}</span>
+          <span class="supp-name">${s.name}</span>
+          <span class="supp-badge sport">اختیاری</span>
+        </div>
+        <div class="supp-body">${s.desc}</div>
+      `;
+      sportWrap.appendChild(card);
+    });
+  }
+
+  if (essential.length === 0) {
+    const noEss = document.createElement("div");
+    noEss.className = "no-extra";
+    noEss.textContent = "✅ مکمل ضروری اضافه‌ای نیاز نداری!";
+    essWrap.appendChild(noEss);
+  }
+  
+  // تولید متن مکمل‌ها برای ذخیره در گوگل شیت
+  calculatedSupplementsText = [...essential.map(s=>s.name), ...sport.map(s=>s.name)].join("، ");
+
+  // تولید مقادیر جواب‌های کاربر
+  let userAnswers = {
+    "جنسیت": answers[0] === 0 ? "مرد" : "زن",
+    "سن": answers[1]?.age || "",
+    "قد (cm)": answers[1]?.height || "",
+    "وزن (kg)": answers[1]?.weight || "",
+    "هدف تمرین": QUESTIONS[2].opts[answers[2]] || "",
+    "پروتئین دریافتی": QUESTIONS[3].opts[answers[3]] || "",
+    "وضعیت رژیم غذایی": QUESTIONS[4].opts[answers[4]] || "",
+    "وضعیت آفتاب گرفتن": QUESTIONS[5].opts[answers[5]] || ""
+  };
+  if (Array.isArray(answers[6])) {
+    userAnswers["مشکلات فیزیکی"] = answers[6].map(i => QUESTIONS[6].opts[i]).join(" | ");
+  }
+
+  // ثبت آمار ناشناس
+  saveToSheet({
+    "نام": "ناشناس",
+    "شماره تماس": "-",
+    "وضعیت": "مشاهده لیست مکمل‌ها",
+    "منبع (Source)": SOURCE_LABEL,
+    "پشتیبان (مقصد)": "-",
+    "موقعیت": "-",
+    "سگمنت": "-",
+    "تایم زون": getTimezone(),
+    "مکمل‌های پیشنهادی": calculatedSupplementsText,
+    ...userAnswers
+  });
+
+  document.getElementById("screen-result").style.display="flex";
+}
+
+function sendMessage(){
+  if (userData.phone && locationDecision) {
+    saveToSheet({
+      "نام": userData.name || "ناشناس",
+      "شماره تماس": userData.phone,
+      "وضعیت": "کلیک روی بهم پیام بده",
+      "پشتیبان (مقصد)": locationDecision.supportName || locationDecision.finalUrl || "انتخاب دستی",
+      "موقعیت": locationDecision.location,
+      "سگمنت": locationDecision.segment,
+      "تایم زون": getTimezone()
+    });
+    document.getElementById("screen-result").style.display="none";
+    if (locationDecision.dest === "fallback") {
+      document.getElementById("screen-fallback").style.display="flex";
+    } else {
+      doRedirect(locationDecision.dest, locationDecision.finalUrl);
+    }
+    return;
+  }
+  document.getElementById("screen-result").style.display="none";
+  document.getElementById("screen-form").style.display="flex";
+}
+
+function handleSubmit(){
+  const name=document.getElementById("input-name").value;
+  const phone=document.getElementById("input-phone").value;
+  const cc=document.getElementById("input-country").value;
+  const pi=validatePhone(phone,cc);
+  let valid=true;
+  
+  if(name.trim().length<2){document.getElementById("err-name").style.display="block";document.getElementById("input-name").classList.add("error");valid=false;}
+  else{document.getElementById("err-name").style.display="none";document.getElementById("input-name").classList.remove("error");}
+  
+  if(!pi.valid){document.getElementById("err-phone").textContent=pi.message;document.getElementById("err-phone").style.display="block";document.getElementById("input-phone").classList.add("error");document.getElementById("input-country").classList.add("error");valid=false;}
+  else{document.getElementById("err-phone").style.display="none";document.getElementById("input-phone").classList.remove("error");document.getElementById("input-country").classList.remove("error");}
+  
+  if(!valid)return;
+  
+  userData={name:name.trim(),phone:pi.e164,countryCode:pi.countryCode,phoneInfo:pi};
+  locationDecision=decide(pi);
+
+  let finalUrl = "", supportName = "نامشخص";
+  if (locationDecision.dest === "telegram") {
+    const supportInfo = getIranSupport();
+    finalUrl = supportInfo.url;
+    supportName = getSupportLabel(supportInfo);
+  } else if (locationDecision.dest === "telegram_abroad") {
+    const supportInfo = getAbroadSupport();
+    finalUrl = supportInfo.url;
+    supportName = getSupportLabel(supportInfo);
+  }
+  locationDecision.finalUrl = finalUrl;
+  locationDecision.supportName = supportName;
+
+  let userAnswers = {
+    "جنسیت": answers[0] === 0 ? "مرد" : "زن",
+    "سن": answers[1]?.age || "",
+    "قد (cm)": answers[1]?.height || "",
+    "وزن (kg)": answers[1]?.weight || "",
+    "هدف تمرین": QUESTIONS[2].opts[answers[2]] || "",
+    "پروتئین دریافتی": QUESTIONS[3].opts[answers[3]] || "",
+    "وضعیت رژیم غذایی": QUESTIONS[4].opts[answers[4]] || "",
+    "وضعیت آفتاب گرفتن": QUESTIONS[5].opts[answers[5]] || ""
+  };
+  
+  if (Array.isArray(answers[6])) {
+    userAnswers["مشکلات فیزیکی"] = answers[6].map(i => QUESTIONS[6].opts[i]).join(" | ");
+  }
+
+  // ثبت کامل اطلاعات کاربری که روی دکمه شروع چت کلیک کرده
+  saveToSheet({
+    "نام": userData.name,
+    "شماره تماس": userData.phone,
+    "وضعیت": "ثبت شماره برای مشاهده نتیجه",
+    "منبع (Source)": SOURCE_LABEL,
+    "پشتیبان (مقصد)": supportName,
+    "موقعیت": locationDecision.location,
+    "سگمنت": locationDecision.segment,
+    "تایم زون": getTimezone(),
+    "مکمل‌های پیشنهادی": calculatedSupplementsText,
+    ...userAnswers
+  });
+  document.getElementById("screen-form").style.display="none";
+  document.getElementById("screen-result").style.display="flex";
+}
+
+function goTo(dest){
+  document.getElementById("screen-fallback").style.display="none";
+  const loc=dest==="telegram"?"داخل ایران (انتخابی)":"خارج از ایران (انتخابی)";
+  
+  let finalUrl, supportName;
+  if (dest === "telegram") {
+    const supportInfo = getIranSupport();
+    finalUrl = supportInfo.url;
+    supportName = getSupportLabel(supportInfo);
+  } else {
+    const supportInfo = getAbroadSupport();
+    finalUrl = supportInfo.url;
+    supportName = getSupportLabel(supportInfo);
+  }
+
+  saveToSheet({
+    "نام": userData.name || "ناشناس",
+    "شماره تماس": userData.phone || "-",
+    "وضعیت": "انتخاب دستی ارتباط",
+    "موقعیت": loc,
+    "پشتیبان (مقصد)": supportName,
+    "تایم زون": getTimezone()
+  });
+
+  doRedirect(dest, finalUrl);
+}
+
+function doRedirect(dest, url){
+  document.getElementById("screen-result").style.display="none";
+  document.getElementById("screen-fallback").style.display="none";
+  const icon=document.getElementById("redirect-icon");
+  const text=document.getElementById("redirect-text");
+  const sub=document.getElementById("redirect-sub");
+  document.getElementById("screen-redirect").style.display="flex";
+  
+  icon.className="redirect-icon telegram";
+  icon.textContent="✈️";
+  text.textContent = "در حال انتقال به تلگرام...";
+  sub.textContent = (dest === "telegram") ? "لحظه‌ای صبر کن" : "Just a moment...";
+  
+  setTimeout(()=>{window.location.href=url}, 1200);
+}
+
+function syncPlaceholder(){
+  const cc=document.getElementById("input-country").value;
+  const rule=PHONE_RULES[cc];
+  document.getElementById("input-phone").placeholder=rule?rule.sample:"+989123456789";
+  document.getElementById("phone-hint").textContent=rule
+    ? `پیش‌شماره +${rule.dial} خودکار اضافه می‌شود؛ شماره را با ارقام فارسی یا انگلیسی و بدون صفر اول وارد کن.`
+    : "شماره را با پیش‌شماره کامل کشور وارد کن؛ مثل +4915123456789. ارقام فارسی و انگلیسی پذیرفته می‌شوند.";
+}
+
+document.getElementById("input-country").addEventListener("change",syncPlaceholder);
+document.getElementById("input-phone").addEventListener("input",e=>{
+  e.target.value=toEN(e.target.value);
+  document.getElementById("err-phone").style.display="none";
+  document.getElementById("input-phone").classList.remove("error");
+  document.getElementById("input-country").classList.remove("error");
+});
+document.addEventListener("keydown",e=>{if(e.key==="Enter"){const sf=document.getElementById("screen-form");if(sf.style.display==="flex")handleSubmit();}});
+syncPlaceholder();
+renderQ();
+</script>
+<script src="../assets/number-inputs.js"></script>
+</body>
+</html>

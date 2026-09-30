@@ -592,7 +592,7 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.2)}
     <div class="fallback-sub">انتخاب کن تا بهترین راه ارتباطی رو برات باز کنم</div>
     <div class="btn-group">
       <button class="btn-primary" onclick="goTo('telegram')">📍 داخل ایران — تلگرام</button>
-      <button class="btn-primary btn-abroad" onclick="goTo('whatsapp')">✈️ خارج از ایران — واتساپ</button>
+      <button class="btn-primary btn-abroad" onclick="goTo('telegram_abroad')">✈️ خارج از ایران — تلگرام</button>
     </div>
   </div>
 
@@ -611,17 +611,19 @@ input[type=range]::-webkit-slider-thumb:active{transform:scale(1.2)}
 // ==========================================
 const FORM_NAME = "Protein-test"; // 👈 اسم تب در گوگل شیت
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxphxAZRvzk_hZ7_lNYudvlzHdLgHc4ZIHAY0zdcHHyKabVS9vao6Oj6Gdd3wLcq9FePQ/exec"; // 👈 لینک اسکریپت هوشمند رو بذار اینجا
-const WHATSAPP = "https://wa.me/989140710711?text=%D8%B3%D9%84%D8%A7%D9%85+%D8%AC%D9%87%D8%AA+%D8%A8%D8%B1%D9%86%D8%A7%D9%85%D9%87+%D8%B1%DB%8C%D8%B2%DB%8C+%D9%BE%DB%8C%D8%A7%D9%85+%D9%85%DB%8C%D8%AF%D9%85";
+const TELEGRAM_MESSAGE = "سلام جهت برنامه ریزی شخصی پیام میدم";
+const TELEGRAM_IRAN = "https://t.me/alichifit?text=" + encodeURIComponent(TELEGRAM_MESSAGE);
+const TELEGRAM_ABROAD = "https://t.me/AMIRALICHI?text=" + encodeURIComponent(TELEGRAM_MESSAGE);
 
 // استخراج لیبل از لینک
 const urlParams = new URLSearchParams(window.location.search);
 const SOURCE_LABEL = urlParams.get('source') || urlParams.get('utm_source') || "بدون تگ / ارگانیک";
 
-// تابع توزیع هوشمند بر اساس ساعت ایران
+// مقصد ثابت پشتیبانی داخل ایران
 function getTelegramSupport() {
   return {
-    url: "https://t.me/ALICHIFIT?text=%D8%B3%D9%84%D8%A7%D9%85%D8%8C%20%D8%AC%D9%87%D8%AA%20%D8%AF%D8%B1%DB%8C%D8%A7%D9%81%D8%AA%20%D8%A8%D8%B1%D9%86%D8%A7%D9%85%D9%87%20%D8%B1%DB%8C%D8%B2%DB%8C%20%D9%BE%DB%8C%D8%A7%D9%85%20%D9%85%DB%8C%D8%AF%D9%85",
-    accountName: "ALICHIFIT"
+    url: TELEGRAM_IRAN,
+    accountName: "alichifit"
   };
 }
 
@@ -911,8 +913,8 @@ function decide(pi){
   const tz=getTimezone(),br=getBrowserRegion();
   const tzIran=tz==='Asia/Tehran',tzAbroad=tz&&tz!=='Asia/Tehran';
   const brAbroad=br&&br!=='IR'&&br!=='AF',brIran=br==='IR'&&tz==='Asia/Tehran';
-  if(!pi.isIranPhone)return{dest:'whatsapp',location:'خارج',segment:'foreign_abroad'};
-  if((tzAbroad||brAbroad)&&!tzIran&&!brIran)return{dest:'whatsapp',location:'ایرانی خارج',segment:'iranian_abroad'};
+  if(!pi.isIranPhone)return{dest:'telegram_abroad',location:'خارج',segment:'foreign_abroad'};
+  if((tzAbroad||brAbroad)&&!tzIran&&!brIran)return{dest:'telegram_abroad',location:'ایرانی خارج',segment:'iranian_abroad'};
   if(tzIran||brIran)return{dest:'telegram',location:'ایران',segment:'inside_iran'};
   return{dest:'fallback',location:'نامشخص',segment:'unknown'};
 }
@@ -966,9 +968,9 @@ function handleSubmit(){
     const tgInfo = getTelegramSupport();
     finalUrl = tgInfo.url;
     supportName = "@" + tgInfo.accountName;
-  } else if (locationDecision.dest === "whatsapp") {
-    finalUrl = WHATSAPP;
-    supportName = "واتساپ (خارجی)";
+  } else if (locationDecision.dest === "telegram_abroad") {
+    finalUrl = TELEGRAM_ABROAD;
+    supportName = "@AMIRALICHI";
   }
   locationDecision.finalUrl = finalUrl;
   locationDecision.supportName = supportName;
@@ -1047,8 +1049,8 @@ function goTo(dest){
     finalUrl = tgInfo.url;
     supportName = "@" + tgInfo.accountName;
   } else {
-    finalUrl = WHATSAPP;
-    supportName = "واتساپ (خارجی)";
+    finalUrl = TELEGRAM_ABROAD;
+    supportName = "@AMIRALICHI";
   }
 
   saveToSheet({
@@ -1074,7 +1076,7 @@ function doRedirect(dest, url){
     icon.textContent='✈️';text.textContent='در حال انتقال به تلگرام...';sub.textContent='لحظه‌ای صبر کن';
     setTimeout(()=>{window.location.href=url}, 1200);
   } else {
-    icon.textContent='💬';text.textContent='در حال انتقال به واتساپ...';sub.textContent='Just a moment...';
+    icon.textContent='✈️';text.textContent='در حال انتقال به تلگرام...';sub.textContent='Just a moment...';
     setTimeout(()=>{window.location.href=url}, 1200);
   }
 }

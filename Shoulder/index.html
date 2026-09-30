@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تست تحلیل برنامه سرشانه | آکادمی علی چی</title>
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700;800;900&display=swap");
+  :root {
+    --navy:#06101e; --navy-light:#0d1e38; --navy-card:#0a1830;
+    --cyan:#00c8e0; --cyan-dim:rgba(0,200,224,0.18);
+    --text:#f0f8ff; --text-dim:rgba(240,248,255,0.55);
+    --red:#ff4d6d; --green:#00e06a; --yellow:#ffc947;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:'Vazirmatn',sans-serif;font-weight:700;
+    background:var(--navy);color:var(--text);
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    position:relative;overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;top:-25%;left:50%;transform:translateX(-50%);
+    width:800px;height:800px;
+    background:radial-gradient(circle,rgba(0,200,224,0.07) 0%,transparent 70%);
+    pointer-events:none;animation:pulse-bg 5s ease-in-out infinite;
+  }
+  @keyframes pulse-bg{0%,100%{opacity:.5;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.1)}}
+  .grid-bg{
+    position:fixed;inset:0;
+    background-image:linear-gradient(rgba(0,200,224,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,224,0.025) 1px,transparent 1px);
+    background-size:60px 60px;pointer-events:none;
+  }
+  .container{
+    position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;
+    padding:32px 20px 52px;width:100%;max-width:440px;
+  }
+  .logo-wrap{margin-bottom:20px;display:flex;flex-direction:column;align-items:center;animation:logo-in .8s cubic-bezier(.34,1.56,.64,1) forwards;opacity:0}
+  @keyframes logo-in{from{opacity:0;transform:scale(.7) translateY(-16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+  .logo-img{width:82px;height:82px;border-radius:20px;filter:drop-shadow(0 0 22px rgba(0,200,224,0.45))}
+  .brand-name{margin-top:10px;font-size:14px;font-weight:900;color:var(--text-dim);animation:fade-in 1s ease .3s forwards;opacity:0}
+  @keyframes fade-in{to{opacity:1}}
+  .progress-wrap{width:100%;margin-bottom:22px;animation:fade-in .5s ease .4s forwards;opacity:0}
+  .progress-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:14px;color:var(--text-dim)}
+  .progress-info strong{color:var(--cyan);font-weight:900;font-size:15px}
+  .progress-bar-bg{height:5px;background:rgba(0,200,224,0.1);border-radius:3px}
+  .progress-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--cyan),#0099bb);transition:width .45s cubic-bezier(.4,0,.2,1);box-shadow:0 0 10px rgba(0,200,224,0.5)}
+  #screen-quiz{width:100%}
+  .question-card{background:var(--navy-card);border:1.5px solid var(--cyan-dim);border-radius:20px;padding:26px 22px 20px;margin-bottom:14px}
+  .question-num{font-size:13px;font-weight:900;color:var(--cyan);letter-spacing:1.5px;margin-bottom:12px}
+  .question-text{font-size:19px;font-weight:900;line-height:1.8;color:var(--text)}
+  .options-list{display:flex;flex-direction:column;gap:11px;margin-top:22px}
+  .option-btn{
+    width:100%;padding:16px 18px;background:var(--navy-light);
+    border:1.5px solid rgba(0,200,224,0.15);border-radius:13px;
+    font-family:'Vazirmatn',sans-serif;font-size:16px;font-weight:700;
+    color:var(--text);cursor:pointer;text-align:right;
+    transition:all .18s ease;direction:rtl;line-height:1.5;
+  }
+  .option-btn:hover{border-color:rgba(0,200,224,0.45);background:rgba(0,200,224,0.06);transform:translateX(-2px)}
+  .option-btn.selected{border-color:var(--cyan);background:rgba(0,200,224,0.1);box-shadow:0 0 0 1.5px rgba(0,200,224,0.25);color:#fff}
+  .nav-row{display:flex;gap:10px;margin-top:4px}
+  .btn-next{
+    flex:1;padding:17px;background:linear-gradient(135deg,var(--cyan),#0099bb);
+    border:none;border-radius:13px;font-family:'Vazirmatn',sans-serif;
+    font-size:18px;font-weight:900;color:var(--navy);cursor:pointer;
+    box-shadow:0 4px 22px rgba(0,200,224,0.28);transition:all .2s;
+    opacity:.35;pointer-events:none;
+  }
+  .btn-next.active{opacity:1;pointer-events:auto}
+  .btn-next.active:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,200,224,0.42)}
+  .btn-back{
+    padding:17px 20px;background:var(--navy-light);border:1.5px solid rgba(0,200,224,0.15);
+    border-radius:13px;font-family:'Vazirmatn',sans-serif;font-size:16px;font-weight:900;
+    color:var(--text-dim);cursor:pointer;transition:all .2s;
+  }
+  .btn-back:hover{border-color:rgba(0,200,224,0.4);color:var(--text)}
+  #screen-loading,#screen-analyzing{display:none;flex-direction:column;align-items:center;gap:18px}
+  .loader-ring{
+    width:56px;height:56px;border:2.5px solid rgba(0,200,224,0.1);
+    border-top:2.5px solid var(--cyan);border-radius:50%;
+    animation:spin .85s linear infinite;filter:drop-shadow(0 0 10px rgba(0,200,224,0.55));
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{font-size:18px;font-weight:800;color:var(--text-dim);text-align:center;line-height:1.7}
+  .loading-sub{font-size:14px;font-weight:700;color:var(--text-dim);text-align:center;line-height:1.7;animation:pulse-txt 2s ease-in-out infinite}
+  @keyframes pulse-txt{0%,100%{opacity:.5}50%{opacity:1}}
+  .analyze-steps{width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px}
+  .step-row{
+    display:flex;align-items:center;gap:12px;padding:13px 16px;
+    background:var(--navy-card);border:1px solid var(--cyan-dim);border-radius:12px;
+    font-size:15px;font-weight:700;color:var(--text-dim);
+    opacity:0;transition:opacity .4s,color .4s;
+  }
+  .step-row.active{opacity:1;color:var(--text)}
+  .step-dot{width:10px;height:10px;border-radius:50%;background:rgba(0,200,224,0.2);flex-shrink:0;transition:background .4s}
+  .step-row.active .step-dot{background:var(--cyan);box-shadow:0 0 8px rgba(0,200,224,0.6)}
+  .step-row.done{opacity:1;color:var(--green)}
+  .step-row.done .step-dot{background:var(--green)}
+  #screen-form{display:none;flex-direction:column;align-items:center;gap:16px;width:100%}
+  .form-badge{font-size:48px;animation:bounce-in .5s cubic-bezier(.34,1.56,.64,1) forwards}
+  @keyframes bounce-in{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+  .form-card{width:100%;background:var(--navy-card);border:1.5px solid var(--cyan-dim);border-radius:20px;padding:24px 20px;text-align:center}
+  .form-card-title{font-size:21px;font-weight:900;color:var(--text);line-height:1.75;margin-bottom:10px}
+  .form-card-title span{color:var(--cyan)}
+  .form-card-sub{font-size:15px;color:var(--text-dim);line-height:1.8}
+  .divider{width:40px;height:2.5px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);margin:0 auto}
+  .input-wrap{width:100%}
+  .input-wrap input,.input-wrap select{
+    width:100%;padding:16px 17px;background:var(--navy-light);
+    border:1.5px solid rgba(0,200,224,0.18);border-radius:14px;
+    font-family:'Vazirmatn',sans-serif;font-size:16px;font-weight:700;
+    color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;direction:rtl;
+  }
+  .input-wrap select{appearance:none;cursor:pointer;color-scheme:dark}
+  .input-wrap input::placeholder{color:var(--text-dim);font-weight:700}
+  .input-wrap input:focus,.input-wrap select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,200,224,0.12)}
+  .input-wrap input.error,.input-wrap select.error{border-color:var(--red);box-shadow:0 0 0 3px rgba(255,77,109,0.1)}
+  .phone-hint{font-size:12.5px;color:var(--text-dim);margin-bottom:7px;line-height:1.8;text-align:right}
+  .phone-row{display:grid;grid-template-columns:1fr 1.3fr;gap:10px;direction:ltr}
+  .phone-row select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%2367e8f9' stroke-width='2' fill='none' stroke-linecap='round'/></svg>");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px !important;cursor:pointer}
+  .phone-row select,.phone-row input{direction:ltr;text-align:left}
+  .field-hint{color:var(--text-dim);font-size:13px;font-weight:700;margin-top:7px;text-align:right}
+  .error-msg{color:var(--red);font-size:13px;font-weight:700;margin-top:7px;display:none;text-align:right}
+  .btn-primary{
+    width:100%;padding:18px 24px;border:none;border-radius:14px;
+    font-family:'Vazirmatn',sans-serif;font-size:18px;font-weight:900;cursor:pointer;
+    background:linear-gradient(135deg,var(--cyan),#0099bb);color:var(--navy);
+    box-shadow:0 4px 24px rgba(0,200,224,0.3);transition:all .2s;
+  }
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,200,224,0.45)}
+  #screen-result{display:none;flex-direction:column;align-items:center;gap:0;width:100%}
+  .result-header{text-align:center;margin-bottom:20px;width:100%}
+  .result-badge{font-size:56px;display:block;margin-bottom:8px}
+  .result-score-box{
+    background:var(--navy-card);border:1.5px solid var(--cyan-dim);border-radius:16px;
+    padding:18px 20px;text-align:center;margin-bottom:6px;width:100%;
+  }
+  .result-score-num{font-size:42px;font-weight:900;color:var(--cyan);line-height:1;direction:ltr;unicode-bidi:plaintext}
+  .result-score-label{font-size:14px;color:var(--text-dim);margin-top:4px}
+  .result-summary-text{font-size:16px;font-weight:800;color:var(--text);line-height:1.8;text-align:center;margin-bottom:0;padding:0 4px}
+  .analysis-cards{width:100%;display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+  .analysis-card{background:var(--navy-card);border:1.5px solid var(--cyan-dim);border-radius:16px;padding:18px}
+  .analysis-card.bad{border-color:rgba(255,77,109,.35)} 
+  .analysis-card.good{border-color:rgba(0,224,106,.3)} 
+  .analysis-card.warn{border-color:rgba(255,201,71,.3)}
+  .ac-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px}
+  .ac-icon{font-size:17px;flex-shrink:0;margin-top:2px}
+  .ac-title{font-size:14px;font-weight:900;line-height:1.6}
+  .ac-title.bad{color:var(--red)} .ac-title.good{color:var(--green)} .ac-title.warn{color:var(--yellow)}
+  .ac-answer{font-size:13px;font-weight:700;color:var(--text-dim);margin-bottom:8px;padding:7px 12px;background:rgba(255,255,255,0.04);border-radius:8px;border-right:2px solid var(--cyan)}
+  .ac-body{font-size:14px;font-weight:700;color:var(--text-dim);line-height:1.8}
+  .cta-bottom-card{
+    width:100%;background:linear-gradient(135deg,rgba(0,200,224,0.08),rgba(0,153,187,0.08));
+    border:1.5px solid rgba(0,200,224,0.3);border-radius:20px;
+    padding:24px 20px;text-align:center;margin-bottom:14px;
+  }
+  .cta-bottom-title{font-size:20px;font-weight:900;color:var(--text);line-height:1.75;margin-bottom:8px}
+  .cta-bottom-title span{color:var(--cyan)}
+  .cta-bottom-sub{font-size:15px;color:var(--text-dim);line-height:1.8}
+  #screen-fallback{display:none;flex-direction:column;align-items:center;gap:16px;width:100%;text-align:center}
+  .fallback-title{font-size:22px;font-weight:900;text-align:center}
+  .fallback-sub{font-size:15px;color:var(--text-dim);text-align:center;line-height:1.75}
+  .btn-group{display:flex;flex-direction:column;gap:12px;width:100%}
+  .btn-abroad{background:var(--navy-light)!important;color:var(--text)!important;border:1.5px solid rgba(0,200,224,0.2)!important;box-shadow:none!important}
+  .btn-abroad:hover{border-color:rgba(0,200,224,0.5)!important}
+  #screen-redirect{display:none;flex-direction:column;align-items:center;gap:16px}
+  .redirect-icon{width:80px;height:80px;border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:36px;animation:bounce-in .5s cubic-bezier(.34,1.56,.64,1) forwards}
+  .redirect-icon.telegram{background:linear-gradient(135deg,#2AABEE,#229ED9);box-shadow:0 8px 28px rgba(42,171,238,0.45)}
+  .redirect-text{font-size:19px;font-weight:900;text-align:center}
+  .redirect-sub{font-size:14px;color:var(--text-dim);text-align:center}
+  @media(max-width:480px){.phone-row{grid-template-columns:1fr}.question-text{font-size:17px}}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="container">
+
+  <div class="logo-wrap">
+    <img class="logo-img" src="https://media.alichiacademy.ir/file_00000000b8d471fd99286105ccafe95a.png" alt="آکادمی علی چی" />
+    <div class="brand-name">آکادمی علی چی</div>
+  </div>
+
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-info">
+      <span>سوال <strong id="q-num">1</strong> از <strong>10</strong></span>
+      <span id="q-pct">10%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-fill" style="width:10%"></div>
+    </div>
+  </div>
+
+  <div id="screen-quiz">
+    <div class="question-card">
+      <div class="question-num" id="q-label">سوال ۱</div>
+      <div class="question-text" id="q-text"></div>
+      <div class="options-list" id="q-options"></div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" id="btn-back" onclick="prevQ()" style="display:none">← قبلی</button>
+      <button class="btn-next" id="btn-next" onclick="nextQ()">بعدی ←</button>
+    </div>
+  </div>
+
+  <div id="screen-analyzing">
+    <div class="loader-ring"></div>
+    <div class="loading-text">در حال تحلیل جواب‌ها و برنامه‌ات...</div>
+    <div class="loading-sub" id="analyze-sub">لطفاً صبر کن</div>
+    <div class="analyze-steps">
+      <div class="step-row" id="step-1"><div class="step-dot"></div><span>بررسی فرکانس تمرینی</span></div>
+      <div class="step-row" id="step-2"><div class="step-dot"></div><span>تحلیل حجم ست‌ها</span></div>
+      <div class="step-row" id="step-3"><div class="step-dot"></div><span>ارزیابی ترتیب و انتخاب حرکات</span></div>
+      <div class="step-row" id="step-4"><div class="step-dot"></div><span>بررسی رنج تکرار و استراحت</span></div>
+      <div class="step-row" id="step-5"><div class="step-dot"></div><span>آماده‌سازی نتایج</span></div>
+    </div>
+  </div>
+
+  <!-- نمایش نتایج اول قرار گرفت -->
+  <div id="screen-result">
+    <div class="result-header">
+      <div class="result-score-box">
+        <div class="result-score-num" id="result-score-num"></div>
+        <div class="result-score-label">امتیاز برنامه‌ات از ۱۰</div>
+      </div>
+      <br>
+      <div class="result-summary-text" id="result-summary"></div>
+    </div>
+    <div class="divider" style="margin:0 auto 22px;"></div>
+    <div class="analysis-cards" id="analysis-cards"></div>
+    <div class="cta-bottom-card">
+      <div class="cta-bottom-title">میخوای <span>برنامه‌ریزیت</span> رو انجام بدم؟</div>
+      <div class="cta-bottom-sub">اگه می‌خوای یه برنامه دقیق و علمی داشته باشی، برای هماهنگی، بهم پیام بده.</div>
+    </div>
+    <button class="btn-primary" onclick="sendMessage()" style="width:100%">📲 بهم پیام بده ←</button>
+  </div>
+
+  <!-- فرم اطلاعات به انتها منتقل شد -->
+  <div id="screen-form">
+    <div class="form-badge">💬</div>
+    <div class="form-card">
+      <div class="form-card-title">مشاهده <span>نتیجه تست</span></div>
+      <div class="divider" style="margin-bottom:12px;"></div>
+      <div class="form-card-sub">
+        برای مشاهده نتیجه‌ی شخصی‌سازی‌شده، اسم و شماره‌ات رو وارد کن 👇
+      </div>
+    </div>
+    <div class="input-wrap">
+      <input type="text" id="input-name" placeholder="نام و نام خانوادگی" autocomplete="off" />
+      <div class="error-msg" id="err-name">نام رو وارد کن</div>
+    </div>
+    <div class="input-wrap">
+      <div class="phone-hint" style="margin-bottom:10px;padding:10px 12px;border:1px solid #fbbf24;border-radius:10px;background:rgba(251,191,36,.12);color:#fbbf24;font-size:13px;font-weight:800;">🌍 خارج از ایران هستی؟ پیش‌شماره‌ی خودت رو وارد کن.</div>
+      <div class="phone-row">
+        <select id="input-country">
+          <option value="IR" selected>🇮🇷 ایران +98</option>
+          <option value="AF">🇦🇫 افغانستان +93</option>
+          <option value="TR">🇹🇷 ترکیه +90</option>
+          <option value="AE">🇦🇪 امارات +971</option>
+          <option value="IQ">🇮🇶 عراق +964</option>
+          <option value="US">🇺🇸 آمریکا +1</option>
+          <option value="CA">🇨🇦 کانادا +1</option>
+          <option value="GB">🇬🇧 انگلستان +44</option>
+          <option value="DE">🇩🇪 آلمان +49</option>
+          <option value="FR">🇫🇷 فرانسه +33</option>
+          <option value="NL">🇳🇱 هلند +31</option>
+          <option value="SE">🇸🇪 سوئد +46</option>
+          <option value="AU">🇦🇺 استرالیا +61</option>
+          <option value="OTHER">🌍 کشور دیگر</option>
+        </select>
+        <input type="tel" id="input-phone" placeholder="9123456789" autocomplete="tel" inputmode="tel" dir="ltr" />
+      </div>
+      <div class="error-msg" id="err-phone">شماره معتبر وارد کن</div>
+      <div class="field-hint" id="phone-hint">شماره را با ارقام فارسی یا انگلیسی و بدون صفر اول وارد کن؛ پیش‌شماره انتخاب‌شده خودکار اضافه می‌شود.</div>
+    </div>
+    <button class="btn-primary" onclick="handleSubmit()">مشاهده نتیجه 🎯</button>
+  </div>
+
+  <div id="screen-loading">
+    <div class="loader-ring"></div>
+    <div class="loading-text">در حال ثبت اطلاعات...</div>
+  </div>
+
+  <div id="screen-fallback">
+    <div class="fallback-title">کجا زندگی می‌کنی؟</div>
+    <div class="divider" style="margin:0 auto;"></div>
+    <div class="fallback-sub">انتخاب کن تا بهترین راه ارتباطی رو برات باز کنم</div>
+    <div class="btn-group">
+      <button class="btn-primary" onclick="goTo('telegram')">📍 داخل ایران</button>
+      <button class="btn-primary btn-abroad" onclick="goTo('telegram_abroad')">✈️ خارج از ایران</button>
+    </div>
+  </div>
+
+  <div id="screen-redirect">
+    <div class="redirect-icon" id="redirect-icon"></div>
+    <div class="redirect-text" id="redirect-text"></div>
+    <div class="redirect-sub" id="redirect-sub"></div>
+  </div>
+
+</div>
+<script>
+// ==========================================
+// تنظیمات اصلی فرم
+// ==========================================
+const FORM_NAME = "Shoulder-test"; // نام تب شیت
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxphxAZRvzk_hZ7_lNYudvlzHdLgHc4ZIHAY0zdcHHyKabVS9vao6Oj6Gdd3wLcq9FePQ/exec"; 
+const TELEGRAM_MESSAGE = "سلام جهت برنامه ریزی شخصی پیام میدم";
+const TELEGRAM_IRAN = "https://t.me/alichifit?text=" + encodeURIComponent(TELEGRAM_MESSAGE);
+const TELEGRAM_ABROAD = "https://t.me/AMIRALICHI?text=" + encodeURIComponent(TELEGRAM_MESSAGE); 
+
+const urlParams = new URLSearchParams(window.location.search);
+const SOURCE_LABEL = urlParams.get('source') || urlParams.get('utm_source') || "بدون تگ / ارگانیک";
+function getIranSupport() {
+  return { url: TELEGRAM_IRAN, accountName: "alichifit" };
+}
+
+function getAbroadSupport() {
+  return { url: TELEGRAM_ABROAD, accountName: "AMIRALICHI" };
+}
+
+function getSupportLabel(supportInfo) {
+  return "@" + supportInfo.accountName;
+}
+
+const QUESTIONS = [
+  {
+    q:"هفته‌ای چند بار سرشونتو تمرین می‌دی؟",
+    opts:["یک بار","دو بار","سه بار یا بیشتر"],
+    scores:[0,2,2],
+    info:[
+      {ok:false,text:"بیشتر افراد هر عضله رو فقط یک‌بار تو هفته تمرین می‌دن و توی اون جلسه پدرشو در میارن. این اشتباهه؛ اگه همون حجم تمرینی رو تو دو جلسه پخش کنی، عضله بیشتر رشد می‌کنه."},
+      {ok:true, text:"ایده‌آله. حجم تمرینی رو درست پخش کردی و سیگنال رشد رو دو بار در هفته به سرشونه می‌دی."},
+      {ok:true, text:"اگه حجم تمرینی رو، بین جلسات درست پخش کردی عالیه، ولی مراقب ریکاوری باش که هر جلسه تعداد حرکات و تعداد ست زیادی نزنی."}
+    ]
+  },
+  {
+    q:"مجموعاً چند ست در هفته برای سرشانه می‌زنی؟",
+    opts:["کمتر از ۸ ست","۸ تا ۱۲ ست","۱۲ تا ۲۰ ست","بیشتر از ۲۰ ست"],
+    scores:[0,1,2,0],
+    info:[
+      {ok:false,text:"حجم تمرینیت برای حفظ عضله خوبه ولی برای رشد کافی نیست."},
+      {ok:null, text:"اگه سابقه زیر ۳ ماه داری اوکیه، ولی اگه بیشتر تمرین می‌کنی می‌تونی بین ۱۲ تا ۲۰ ست بزنی."},
+      {ok:true, text:"رنج مناسبیه. بدنت محرک کافی برای رشد سرشونه داره."},
+      {ok:false,text:"اگه ورزشکار حرفه‌ای نیستی، احتمالاً بدنت نمی‌تونه این حجم تمرینی رو ریکاوری کنه و جلوی رشدتو می‌گیره."}
+    ]
+  },
+  {
+    q:"برای سرشانت از چه حرکاتی استفاده می‌کنی؟",
+    opts:["حرکات پرسی (مثل پرس سرشانه هالتر)","انواع نشر جانب","انواع فلای معکوس (مثل نشر خم دمبل)","هر سه"],
+    scores:[1,1,1,2],
+    info:[
+      {ok:null, text:"توی حرکات پرسی بیشتر قسمت جلویی سرشانت درگیره، برای سرشانه کامل نیازه که هر سه قسمت شونتو با مقدار مناسب تمرین بدی."},
+      {ok:null, text:"توی انواع نشر جانب بیشتر قسمت میانی سرشانت درگیره، برای سرشانه کامل نیازه که هر سه قسمت شونتو با مقدار مناسب تمرین بدی."},
+      {ok:null, text:"توی انواع فلای معکوس، قسمت پشتی سرشانت بهتر درگیره، برای سرشانه کامل نیازه که هر سه قسمت شونتو با مقدار مناسب تمرین بدی."},
+      {ok:true, text:"عالیه، هر سه سر سرشونه‌ت (قدامی، جانبی، خلفی) رو پوشش می‌دی و رشد کامل و متقارنی خواهی داشت."}
+    ]
+  },
+  {
+    q:"سرشانتو کِی تو برنامه تمرین می‌دی؟",
+    opts:["اول تمرین","وسط تمرین","آخر تمرین"],
+    scores:[2,1,0],
+    info:[
+      {ok:true, text:"درسته. اگه اولویتت رشد سرشانه‌ته، بهتره اول برنامت تمرینش بدی چون بیشترین انرژی و تمرکز رو داری."},
+      {ok:null, text:"اوکی هست، ولی اگه اولویتت رشد سرشانه‌ته، بهتره اول برنامت تمرینش بدی چون بیشترین انرژی و تمرکز رو داری."},
+      {ok:false,text:"اگه اولویتت رشد سرشانه‌ته، بهتره اول برنامت تمرینش بدی چون بیشترین انرژی و تمرکز رو داری."}
+    ]
+  },
+  {
+    q:"تکرارهات تو چه رنجی هستن؟",
+    opts:["کمتر از ۶ تکرار","۶ تا ۱۵ تکرار","بیشتر از ۱۵ تکرار","هر دو رنج (۶-۱۵ و بالای ۱۵)"],
+    scores:[0,1,1,2],
+    info:[
+      {ok:false,text:"برای عضله‌سازی بهینه نیست. سرشونه عضله کوچیک و حساسیه و خطر آسیب هم با وزنه‌های خیلی سنگین بیشتره."},
+      {ok:null, text:"بازه خوبیه، ولی از رنج بالای ۱۵ تکرار هم استفاده کن تا استرس متابولیکی و سوزش بیشتری داشته باشی."},
+      {ok:null, text:"برای دم‌کردن و سوزش خوبه، ولی برای تنش مکانیکی از بازه ۶ تا ۱۵ هم استفاده کن."},
+      {ok:true, text:"هم تنش مکانیکی داری هم استرس متابولیکی. بیشترین محرک رشد رو به سرشونه‌ت می‌دی."}
+    ]
+  },
+  {
+    q:"بین ست‌هات چند دقیقه استراحت می‌کنی؟",
+    opts:["کمتر از ۱ دقیقه","۱ تا ۲ دقیقه","بیشتر از ۲ دقیقه"],
+    scores:[0,2,1],
+    info:[
+      {ok:false,text:"ریکاوری کافی نیست. ست بعدی با کیفیت پایین زده میشه و از تمرینت نهایت استفاده رو نمی‌کنی."},
+      {ok:true, text:"مناسبه. سرشونه توی این بازه ریکاور میشه و آماده ست بعدیه."},
+      {ok:null, text:"سرشونه عضله کوچیکیه و بین ۱ تا ۲ دقیقه ریکاور میشه. وقتتو پرت نکن."}
+    ]
+  },
+  {
+    q:"سرشانتو چجوری تمرین می‌دی؟",
+    opts:["تا ناتوانی و جایی که بتونم حرکات رو انجام می‌دم","وقتی به مرز ناتوانی رسیدم، یک یا دو تکرار مانده به ناتوانی حرکت رو متوقف می‌کنم","قبل از اینکه عضله تحت تنش جدی قرار بگیره حرکتو متوقف می‌کنم"],
+    scores:[1,2,0],
+    info:[
+      {ok:null, text:"رفتن تا ناتوانی کامل محرک رشد قوی‌ای ایجاد می‌کنه، ولی اگه همیشه همه ست‌هارو این‌طوری ببری، خستگی سیستم عصبیت بالا می‌ره و ریکاوری بین جلسات سخت‌تر میشه. بهتره فقط ست آخرو تا ناتوانی کامل ببری."},
+      {ok:true, text:"دقیقاً بهترین حالت ممکنه. عضلت به‌اندازه کافی تحت فشار قرار می‌گیره تا سیگنال رشد بگیره، بدون اینکه خستگی بیش از حد بهت تحمیل بشه."},
+      {ok:false,text:"اگه قبل از اینکه عضله واقعاً تحت فشار قرار بگیره حرکتو تموم کنی، محرک کافی برای رشد بهش نمی‌دی. سرشونه‌ت باید هر ست، با حفظ فرم اجرای صحیح و بدون تقلب و ریسک آسیب، به مرز ناتوانی برسه."}
+    ]
+  },
+  {
+    q:"موقع اجرای حرکات سرشانه، فشار بیشتر روی سرشانته یا تراپزیوس (کولت)؟",
+    opts:["بیشتر رو سرشانه‌ام حس می‌کنم","بیشتر رو تراپزیوس (کولم) حس می‌کنم"],
+    scores:[2,0],
+    info:[
+      {ok:true, text:"فرم اجرای خوبی داری و ارتباط عصبی-عضلانیت اوکیه. عضله‌ای که باید درگیر بشه، درست داره کار می‌کشه."},
+      {ok:false,text:"فرم اجراتو باید اصلاح کنی و روی ارتباط عصبی-عضلانیت کار کنی. وقتی فشار بیشتر رو تراپزیوس حس می‌کنی، یعنی سرشونه اون‌طور که باید درگیر نمیشه و داری از عضلات کمکی استفاده می‌کنی."}
+    ]
+  },
+  {
+    q:"تو یک ماه گذشته، وزنه‌هایی که تو حرکات سرشانه استفاده می‌کنی یا تعداد تکرارهاش زیاد شده؟",
+    opts:["آره","نه"],
+    scores:[2,0],
+    info:[
+      {ok:true, text:"پیشرفت توی وزنه‌ها و تعداد تکرارها به این معنیه که عضلت داره رشد می‌کنه. همیشه باید این روند مثبت باشه."},
+      {ok:false,text:"پیشرفتت متوقف شده که می‌تونه دلایل زیادی داشته باشه؛ یا به اندازه کافی سرشونتو تمرین نمی‌دی، یا با شدت خوبی سرشونتو تمرین نمی‌دی، یا تمرینات شونه رو می‌ذاری وسط یا آخر تمرینت."}
+    ]
+  },
+  {
+    q:"چند وقته با همین برنامه تمرین می‌کنی؟",
+    opts:["کمتر از ۱ ماه","۱ تا ۳ ماه","بیشتر از ۳ ماه"],
+    scores:[2,1,0],
+    info:[
+      {ok:true, text:"خوبه. تا ۴ هفته همین برنامه رو ادامه بده، بعد تغییرش بده."},
+      {ok:null, text:"به احتمال زیاد بدنت داره با این برنامه سازگار میشه. وقتشه یه تغییر بدی."},
+      {ok:false,text:"بدنت با این برنامه کاملاً سازگار شده و رشد متوقف شده. حتماً برنامه‌ات رو عوض کن."}
+    ]
+  }
+];
+
+function scoreTo10(raw){
+  return Math.round((raw / 20) * 10 * 10) / 10;
+}
+
+const SUMMARIES = [
+  {min:0,  max:3,  text:"برنامه‌ات مشکلات اساسی داره که مستقیماً جلوی رشد سرشونتو گرفته."},
+  {min:4,  max:7,  text:"برنامت نقص‌هایی داره که می‌تونی برطرف کنی."},
+  {min:8,  max:10, text:"برنامه‌ات با علم روز مطابقه، ولی یه نکته مهم هست که اکثر کسایی که برنامه خوب دارن نادیده می‌گیرن."}
+];
+
+const FA=[" ","۱","۲","۳","۴","۵","۶","۷","۸","۹","۱۰"];
+let currentQ=0,answers=new Array(10).fill(null),totalScore=0,score10=0,summaryData=null,userData={},locationDecision=null;
+
+function renderQ(){
+  const q=QUESTIONS[currentQ];
+  const pct=Math.round(((currentQ+1)/10)*100);
+  document.getElementById("q-num").textContent=currentQ+1;
+  document.getElementById("q-pct").textContent=pct+"%";
+  document.getElementById("progress-fill").style.width=pct+"%";
+  document.getElementById("q-label").textContent="سوال "+FA[currentQ+1];
+  document.getElementById("q-text").textContent=q.q;
+  const list=document.getElementById("q-options");
+  list.innerHTML="";
+  q.opts.forEach((opt,i)=>{
+    const btn=document.createElement("button");
+    btn.className="option-btn"+(answers[currentQ]===i?" selected":"");
+    btn.textContent=opt;
+    btn.onclick=()=>selectOption(i);
+    list.appendChild(btn);
+  });
+  document.getElementById("btn-back").style.display=currentQ>0?"block":"none";
+  updateNextBtn();
+}
+
+function selectOption(idx){
+  answers[currentQ]=idx;
+  document.querySelectorAll(".option-btn").forEach((b,i)=>b.classList.toggle("selected",i===idx));
+  updateNextBtn();
+}
+
+function updateNextBtn(){
+  const btn=document.getElementById("btn-next");
+  const done=answers[currentQ]!==null;
+  const isLast=currentQ===9;
+  btn.classList.toggle("active",done);
+  btn.textContent=isLast?"مشاهده نتیجه 🎯":"بعدی ←";
+}
+
+function nextQ(){
+  if(answers[currentQ]===null)return;
+  if(currentQ<9){currentQ++;renderQ();}
+  else{startAnalyzing();}
+}
+
+function prevQ(){if(currentQ>0){currentQ--;renderQ();}}
+
+function startAnalyzing(){
+  document.getElementById("screen-quiz").style.display="none";
+  document.getElementById("progress-wrap").style.display="none";
+  document.getElementById("screen-analyzing").style.display="flex";
+  totalScore=answers.reduce((s,a,qi)=>s+(a!==null?QUESTIONS[qi].scores[a]:0),0);
+  score10=scoreTo10(totalScore);
+  summaryData=SUMMARIES.find(s=>score10>=s.min&&score10<=s.max)||SUMMARIES[1];
+  const steps=["step-1","step-2","step-3","step-4","step-5"];
+  const subs=["بررسی فرکانس تمرینی...","تحلیل حجم ست‌ها...","ارزیابی حرکات و ترتیب...","بررسی رنج تکرار و استراحت...","آماده‌سازی نتایج..."];
+  let i=0;
+  function tick(){
+    if(i>0){document.getElementById(steps[i-1]).classList.remove("active");document.getElementById(steps[i-1]).classList.add("done");}
+    if(i<steps.length){
+      document.getElementById(steps[i]).classList.add("active");
+      document.getElementById("analyze-sub").textContent=subs[i];
+      i++;setTimeout(tick,700);
+    }else{
+      setTimeout(()=>{
+        document.getElementById("screen-analyzing").style.display="none";
+        // نمایش مستقیم نتیجه
+        showResultScreen();
+        sendMessage();
+      },500);
+    }
+  }
+  setTimeout(tick,400);
+}
+
+const PHONE_RULES={
+  IR:{dial:"98",min:10,max:10,mobile:/^9\d{9}$/,sample:"9123456789"},
+  AF:{dial:"93",min:9,max:9,mobile:/^7\d{8}$/,sample:"701234567"},
+  TR:{dial:"90",min:10,max:10,mobile:/^5\d{9}$/,sample:"5012345678"},
+  AE:{dial:"971",min:9,max:9,mobile:/^5\d{8}$/,sample:"501234567"},
+  IQ:{dial:"964",min:10,max:10,mobile:/^7\d{9}$/,sample:"7712345678"},
+  US:{dial:"1",min:10,max:10,mobile:/^[2-9]\d{9}$/,sample:"2025550123"},
+  CA:{dial:"1",min:10,max:10,mobile:/^[2-9]\d{9}$/,sample:"4165550123"},
+  GB:{dial:"44",min:10,max:10,mobile:/^7\d{9}$/,sample:"7123456789"},
+  DE:{dial:"49",min:10,max:11,mobile:/^1[5-7]\d{8,9}$/,sample:"15123456789"},
+  FR:{dial:"33",min:9,max:9,mobile:/^[67]\d{8}$/,sample:"612345678"},
+  NL:{dial:"31",min:9,max:9,mobile:/^6\d{8}$/,sample:"612345678"},
+  SE:{dial:"46",min:9,max:9,mobile:/^7\d{8}$/,sample:"701234567"},
+  AU:{dial:"61",min:9,max:9,mobile:/^4\d{8}$/,sample:"412345678"}
+};
+
+function toEN(v){return String(v||"").replace(/[۰-۹٠-٩]/g,d=>{const pi="۰۱۲۳۴۵۶۷۸۹".indexOf(d);return pi>-1?pi:"٠١٢٣٤٥٦٧٨٩".indexOf(d);});}
+function cleanPhone(v){return toEN(v).replace(/[^\d+]/g,"").replace(/(?!^)\+/g,"");}
+function stripDial(p,r){let d=p.replace(/^\+/,"");if(d.startsWith("00"))d=d.slice(2);if(d.startsWith(r.dial))d=d.slice(r.dial.length);if(d.startsWith("0"))d=d.slice(1);return d;}
+function validatePhone(raw,cc){
+  const cl=cleanPhone(raw);
+  if(!cl)return{valid:false,message:"شماره موبایل رو وارد کن"};
+  const rule=PHONE_RULES[cc];
+  if(!rule){
+    if(!/^(?:\+|00)/.test(cl))return{valid:false,message:"برای کشور دیگر، شماره را با پیش‌شماره کامل وارد کن؛ مثل +4915123456789"};
+    const g=cl.replace(/^(?:\+|00)/,"").replace(/^0+/,"");
+    return /^\d{8,15}$/.test(g)?{valid:true,countryCode:"OTHER",national:g,e164:"+"+g,isIranPhone:g.startsWith("98")}:{valid:false,message:"شماره بین‌المللی معتبر وارد کن؛ مثل +4915123456789"};
+  }
+  const nat=stripDial(cl,rule);
+  if(nat.length<rule.min||nat.length>rule.max||!rule.mobile.test(nat))return{valid:false,message:"شماره معتبر وارد کن؛ مثلاً: "+rule.sample};
+  return{valid:true,countryCode:cc,national:nat,e164:"+"+rule.dial+nat,isIranPhone:cc==="IR"};
+}
+
+function getTimezone(){try{return Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){return null}}
+function getBrowserRegion(){for(const l of(navigator.languages||[navigator.language||""])){const m=String(l).toUpperCase().match(/-([A-Z]{2})$/);if(m)return m[1];}return null;}
+
+function decide(pi){
+
+  const tz=getTimezone(),br=getBrowserRegion();
+  const tzIran=tz==="Asia/Tehran",tzAbroad=tz&&tz!=="Asia/Tehran";
+  const brAbroad=br&&br!=="IR"&&br!=="AF",brIran=br==="IR"&&tz==="Asia/Tehran";
+  
+  if(tzAbroad) return {dest:"telegram_abroad", location:"خارج (تایم‌زون)", segment:"foreign_timezone"};
+  if(!pi.isIranPhone) return {dest:"telegram_abroad", location:"خارج (شماره)", segment:"foreign_phone"};
+  if(tzIran||brIran) return {dest:"telegram", location:"ایران", segment:"inside_iran"};
+  
+  return {dest:"fallback", location:"نامشخص", segment:"unknown"};
+}
+
+function saveToSheet(payload){
+  try {
+    payload.formName = FORM_NAME;
+    fetch(SCRIPT_URL, {
+      method:"POST",
+      mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {}
+}
+
+function showResultScreen(){
+  document.getElementById("result-score-num").textContent=score10+" / ۱۰";
+  document.getElementById("result-summary").textContent=summaryData.text;
+  buildAnalysisCards();
+  document.getElementById("screen-result").style.display="flex";
+
+  // جمع‌آوری جواب‌های کاربر
+  let userAnswers = {};
+  QUESTIONS.forEach((q, i) => {
+    userAnswers[`سوال ${i+1}`] = q.opts[answers[i]];
+  });
+
+  // ثبت آمار ناشناس هنگام مشاهده نتایج
+  saveToSheet({
+    "نام": "ناشناس",
+    "شماره تماس": "-",
+    "وضعیت": "مشاهده نتایج تست سرشانه",
+    "امتیاز از 10": score10,
+    "امتیاز خام": totalScore,
+    "منبع (Source)": SOURCE_LABEL,
+    "پشتیبان (مقصد)": "-",
+    "موقعیت": "-",
+    "سگمنت": "-",
+    "تایم زون": getTimezone(),
+    ...userAnswers
+  });
+}
+
+function buildAnalysisCards(){
+  const container=document.getElementById("analysis-cards");
+  container.innerHTML="";
+  QUESTIONS.forEach((q,qi)=>{
+    const ai=answers[qi];if(ai===null)return;
+    const info=q.info[ai];const score=q.scores[ai];
+    let cls="warn",icon="⚠️",tcls="warn";
+    if(score>=2){cls="good";icon="✅";tcls="good";}
+    else if(score===0){cls="bad";icon="❌";tcls="bad";}
+    const card=document.createElement("div");
+    card.className="analysis-card "+cls;
+    card.innerHTML=`
+      <div class="ac-header">
+        <span class="ac-icon">${icon}</span>
+        <span class="ac-title ${tcls}">${q.q}</span>
+      </div>
+      <div class="ac-answer">جواب تو: ${q.opts[ai]}</div>
+      <div class="ac-body">${info.text}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// نمایش فرم برای ارتباط
+function sendMessage(){
+  if (userData.phone && locationDecision) {
+    saveToSheet({
+      "نام": userData.name || "ناشناس",
+      "شماره تماس": userData.phone,
+      "وضعیت": "کلیک روی بهم پیام بده",
+      "پشتیبان (مقصد)": locationDecision.supportName || locationDecision.finalUrl || "انتخاب دستی",
+      "موقعیت": locationDecision.location,
+      "سگمنت": locationDecision.segment,
+      "تایم زون": getTimezone()
+    });
+    document.getElementById("screen-result").style.display="none";
+    if (locationDecision.dest === "fallback") {
+      document.getElementById("screen-fallback").style.display="flex";
+    } else {
+      doRedirect(locationDecision.dest, locationDecision.finalUrl);
+    }
+    return;
+  }
+  document.getElementById("screen-result").style.display="none";
+  document.getElementById("screen-form").style.display="flex";
+}
+
+function handleSubmit(){
+  const name=document.getElementById("input-name").value;
+  const phone=document.getElementById("input-phone").value;
+  const cc=document.getElementById("input-country").value;
+  const pi=validatePhone(phone,cc);
+  let valid=true;
+  
+  if(name.trim().length<2){document.getElementById("err-name").style.display="block";document.getElementById("input-name").classList.add("error");valid=false;}
+  else{document.getElementById("err-name").style.display="none";document.getElementById("input-name").classList.remove("error");}
+  
+  if(!pi.valid){document.getElementById("err-phone").textContent=pi.message;document.getElementById("err-phone").style.display="block";document.getElementById("input-phone").classList.add("error");document.getElementById("input-country").classList.add("error");valid=false;}
+  else{document.getElementById("err-phone").style.display="none";document.getElementById("input-phone").classList.remove("error");document.getElementById("input-country").classList.remove("error");}
+  
+  if(!valid)return;
+  
+  userData={name:name.trim(),phone:pi.e164,countryCode:pi.countryCode,phoneInfo:pi};
+  locationDecision=decide(pi);
+
+  let finalUrl = "", supportName = "نامشخص";
+  if (locationDecision.dest === "telegram") {
+    const supportInfo = getIranSupport();
+    finalUrl = supportInfo.url;
+    supportName = getSupportLabel(supportInfo);
+  } else if (locationDecision.dest === "telegram_abroad") {
+    const supportInfo = getAbroadSupport();
+    finalUrl = supportInfo.url;
+    supportName = getSupportLabel(supportInfo);
+  }
+  locationDecision.finalUrl = finalUrl;
+  locationDecision.supportName = supportName;
+
+  let userAnswers = {};
+  QUESTIONS.forEach((q, i) => {
+    userAnswers[`سوال ${i+1}`] = q.opts[answers[i]];
+  });
+
+  // ثبت اطلاعات کامل پس از فرم
+  saveToSheet({
+    "نام": userData.name,
+    "شماره تماس": userData.phone,
+    "وضعیت": "ثبت شماره برای مشاهده نتیجه",
+    "امتیاز از 10": score10,
+    "امتیاز خام": totalScore,
+    "منبع (Source)": SOURCE_LABEL,
+    "پشتیبان (مقصد)": supportName,
+    "موقعیت": locationDecision.location,
+    "سگمنت": locationDecision.segment,
+    "تایم زون": getTimezone(),
+    ...userAnswers
+  });
+  document.getElementById("screen-form").style.display="none";
+  document.getElementById("screen-result").style.display="flex";
+}
+
+function goTo(dest){
+  document.getElementById("screen-fallback").style.display="none";
+  const loc=dest==="telegram"?"داخل ایران (انتخابی)":"خارج از ایران (انتخابی)";
+  
+  let finalUrl, supportName;
+  if (dest === "telegram") {
+    const supportInfo = getIranSupport();
+    finalUrl = supportInfo.url;
+    supportName = getSupportLabel(supportInfo);
+  } else {
+    const supportInfo = getAbroadSupport();
+    finalUrl = supportInfo.url;
+    supportName = getSupportLabel(supportInfo);
+  }
+
+  saveToSheet({
+    "نام": userData.name || "ناشناس",
+    "شماره تماس": userData.phone || "-",
+    "وضعیت": "انتخاب دستی ارتباط",
+    "موقعیت": loc,
+    "پشتیبان (مقصد)": supportName,
+    "تایم زون": getTimezone()
+  });
+
+  doRedirect(dest, finalUrl);
+}
+
+function doRedirect(dest, url){
+  document.getElementById("screen-result").style.display="none";
+  document.getElementById("screen-fallback").style.display="none";
+  const icon=document.getElementById("redirect-icon");
+  const text=document.getElementById("redirect-text");
+  const sub=document.getElementById("redirect-sub");
+  document.getElementById("screen-redirect").style.display="flex";
+  
+  icon.className="redirect-icon telegram";
+  icon.textContent="✈️";
+  text.textContent = "در حال انتقال به تلگرام...";
+  sub.textContent = (dest === "telegram") ? "لحظه‌ای صبر کن" : "Just a moment...";
+  
+  setTimeout(()=>{window.location.href=url}, 1200);
+}
+
+function syncPlaceholder(){
+  const cc=document.getElementById("input-country").value;
+  const rule=PHONE_RULES[cc];
+  document.getElementById("input-phone").placeholder=rule?rule.sample:"+989123456789";
+  document.getElementById("phone-hint").textContent=rule
+    ? `پیش‌شماره +${rule.dial} خودکار اضافه می‌شود؛ شماره را با ارقام فارسی یا انگلیسی و بدون صفر اول وارد کن.`
+    : "شماره را با پیش‌شماره کامل کشور وارد کن؛ مثل +4915123456789. ارقام فارسی و انگلیسی پذیرفته می‌شوند.";
+}
+
+document.getElementById("input-country").addEventListener("change",syncPlaceholder);
+document.getElementById("input-phone").addEventListener("input",e=>{
+  e.target.value=toEN(e.target.value);
+  document.getElementById("err-phone").style.display="none";
+  document.getElementById("input-phone").classList.remove("error");
+  document.getElementById("input-country").classList.remove("error");
+});
+document.addEventListener("keydown",e=>{if(e.key==="Enter"){const sf=document.getElementById("screen-form");if(sf.style.display==="flex")handleSubmit();}});
+syncPlaceholder();
+renderQ();
+</script>
+</body>
+</html>

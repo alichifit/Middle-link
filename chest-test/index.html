@@ -162,7 +162,6 @@
   #screen-redirect{display:none;flex-direction:column;align-items:center;gap:20px;text-align:center;padding:40px 0}
   .redirect-icon{width:80px;height:80px;border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:36px;animation:bounce-in .5s cubic-bezier(.34,1.56,.64,1) forwards}
   .redirect-icon.telegram{background:linear-gradient(135deg,#2AABEE,#229ED9);box-shadow:0 8px 28px rgba(42,171,238,0.45)}
-  .redirect-icon.whatsapp{background:linear-gradient(135deg,#25D366,#128C7E);box-shadow:0 8px 28px rgba(37,211,102,0.45)}
   .redirect-text{font-size:20px;font-weight:900;color:var(--text)}
   .redirect-sub{font-size:15px;color:var(--text-dim)}
 </style>
@@ -280,7 +279,7 @@
     <div class="fallback-sub">انتخاب کن تا بهترین راه ارتباطی رو برات باز کنم</div>
     <div class="btn-group">
       <button class="btn-primary" onclick="goTo('telegram')">📍 داخل ایران — تلگرام</button>
-      <button class="btn-primary btn-abroad" onclick="goTo('whatsapp')">✈️ خارج از ایران — واتساپ</button>
+      <button class="btn-primary btn-abroad" onclick="goTo('telegram_abroad')">✈️ خارج از ایران — تلگرام</button>
     </div>
   </div>
 
@@ -298,7 +297,9 @@
 // ==========================================
 const FORM_NAME = "Chest_test"; // 👈 نام تب شیت برای تست سینه
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxphxAZRvzk_hZ7_lNYudvlzHdLgHc4ZIHAY0zdcHHyKabVS9vao6Oj6Gdd3wLcq9FePQ/exec"; // لینک اسکریپت جدید
-const WHATSAPP  = "https://wa.me/989140710711?text=%D8%B3%D9%84%D8%A7%D9%85+%D8%AC%D9%87%D8%AA+%D8%A8%D8%B1%D9%86%D8%A7%D9%85%D9%87+%D8%B1%DB%8C%D8%B2%DB%8C+%D9%BE%DB%8C%D8%A7%D9%85+%D9%85%DB%8C%D8%AF%D9%85"; // شماره واتساپ جدید
+const TELEGRAM_MESSAGE = "سلام جهت برنامه ریزی شخصی پیام میدم";
+const TELEGRAM_IRAN = "https://t.me/alichifit?text=" + encodeURIComponent(TELEGRAM_MESSAGE);
+const TELEGRAM_ABROAD = "https://t.me/AMIRALICHI?text=" + encodeURIComponent(TELEGRAM_MESSAGE);
 
 // استخراج سورس از لینک 
 const urlParams = new URLSearchParams(window.location.search);
@@ -307,8 +308,8 @@ const SOURCE_LABEL = urlParams.get('source') || urlParams.get('utm_source') || "
 // تابع هدایت به تلگرام (ارسال مستقیم به یک آیدی ثابت بدون شیفت‌بندی)
 function getTelegramSupport() {
   return {
-    url: "https://t.me/ALICHIFIT?text=%D8%B3%D9%84%D8%A7%D9%85%D8%8C%20%D8%AC%D9%87%D8%AA%20%D8%AF%D8%B1%DB%8C%D8%A7%D9%81%D8%AA%20%D8%A8%D8%B1%D9%86%D8%A7%D9%85%D9%87%20%D8%B1%DB%8C%D8%B2%DB%8C%20%D9%BE%DB%8C%D8%A7%D9%85%20%D9%85%DB%8C%D8%AF%D9%85",
-    accountName: "ALICHIFIT"
+    url: TELEGRAM_IRAN,
+    accountName: "alichifit"
   };
 }
 
@@ -537,8 +538,8 @@ function decide(pi){
   const tz=getTimezone(),br=getBrowserRegion();
   const tzIran=tz==="Asia/Tehran",tzAbroad=tz&&tz!=="Asia/Tehran";
   const brAbroad=br&&br!=="IR"&&br!=="AF",brIran=br==="IR"&&tz==="Asia/Tehran";
-  if(!pi.isIranPhone)return{dest:"whatsapp",location:"خارج",segment:"foreign_abroad"};
-  if((tzAbroad||brAbroad)&&!tzIran&&!brIran)return{dest:"whatsapp",location:"ایرانی خارج",segment:"iranian_abroad"};
+  if(!pi.isIranPhone)return{dest:"telegram_abroad",location:"خارج",segment:"foreign_abroad"};
+  if((tzAbroad||brAbroad)&&!tzIran&&!brIran)return{dest:"telegram_abroad",location:"ایرانی خارج",segment:"iranian_abroad"};
   if(tzIran||brIran)return{dest:"telegram",location:"ایران",segment:"inside_iran"};
   return{dest:"fallback",location:"نامشخص",segment:"unknown"};
 }
@@ -580,9 +581,9 @@ function handleSubmit(){
     const tgInfo = getTelegramSupport();
     finalUrl = tgInfo.url;
     supportName = "@" + tgInfo.accountName;
-  } else if (locationDecision.dest === "whatsapp") {
-    finalUrl = WHATSAPP;
-    supportName = "واتساپ (خارجی)";
+  } else if (locationDecision.dest === "telegram_abroad") {
+    finalUrl = TELEGRAM_ABROAD;
+    supportName = "@AMIRALICHI";
   }
   locationDecision.finalUrl = finalUrl;
   locationDecision.supportName = supportName;
@@ -673,8 +674,8 @@ function goTo(dest){
     finalUrl = tgInfo.url;
     supportName = "@" + tgInfo.accountName;
   } else {
-    finalUrl = WHATSAPP;
-    supportName = "واتساپ (خارجی)";
+    finalUrl = TELEGRAM_ABROAD;
+    supportName = "@AMIRALICHI";
   }
 
   // ثبت اقدام کاربر به انتخاب دستی
@@ -701,7 +702,7 @@ function doRedirect(dest, url){
     icon.className="redirect-icon telegram";icon.textContent="✈️";text.textContent="در حال انتقال به تلگرام...";sub.textContent="لحظه‌ای صبر کن";
     setTimeout(()=>{window.location.href=url}, 1200);
   }else{
-    icon.className="redirect-icon whatsapp";icon.textContent="💬";text.textContent="در حال انتقال به واتساپ...";sub.textContent="Just a moment...";
+    icon.className="redirect-icon telegram";icon.textContent="✈️";text.textContent="در حال انتقال به تلگرام...";sub.textContent="Just a moment...";
     setTimeout(()=>{window.location.href=url}, 1200);
   }
 }
